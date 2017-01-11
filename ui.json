@@ -1,0 +1,12 @@
+{
+  "defaultEntryPoint": "index.html",
+  "namespace": "Yoochoose",
+  "menuEntries": [
+    {
+      "label": "Yoochoose",
+      "menu": "start",
+      "urlKey": "yoochoose",
+      "entryPoint": "index.html"
+    }
+  ]
+}

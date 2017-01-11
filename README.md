@@ -1,1 +1,1 @@
-plenty7
+# Yoochoose Plentymarkets plugin

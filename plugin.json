@@ -1,0 +1,20 @@
+{
+      "name":"Yoochoose",
+      "description":"My first plugin",
+      "namespace":"Yoochoose",
+      "author":"Test",
+      "type":"template",
+      "version": "1.0.0",
+      "serviceProvider":"Yoochoose\\Providers\\YoochooseServiceProvider",
+      "dataProviders": [
+            {
+            "key":"Yoochoose\\Providers\\YoochooseServiceDataProvider",
+            "name":"Yoochoose Tracking",
+            "description": "Yoochoose Tracking"
+            }
+      ],
+      "javaScriptFiles": [],
+      "runOnBuild": [
+            "Yoochoose\\Migrations\\CreateSettingsTable"
+      ]
+}

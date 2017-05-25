@@ -2,14 +2,33 @@
 
 namespace Yoochoose\Helpers;
 
+use Plenty\Plugin\Application;
+
 class Data
 {
+
+    /**
+     * @var Application
+     */
+    private $app;
+
+    public function __construct(
+        Application $app
+    ){
+        $this->app = $app;
+    }
+    
+    public function getStoreId()
+    {
+        return $this->app->getWebstoreId();
+    }
 
     /**
      * @param $url
      * @param $body
      * @param $customerId
      * @param $licenceKey
+     * @throws \Exception
      * @return mixed
      */
     public function getHttpPage($url, $body, $customerId, $licenceKey)
@@ -32,8 +51,11 @@ class Data
 
         $response = curl_exec($curl);
         $result = json_decode($response, true);
-        curl_close($curl);
 
+//        $this->getLogger('SettingsController_saveSettings')->info('Yoochoose::log.configurationSaved', []);
+        
+        curl_close($curl);
+        
         return $result;
     }
 }

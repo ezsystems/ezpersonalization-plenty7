@@ -5,9 +5,6 @@ namespace Yoochoose\Migrations;
 use Yoochoose\Models\Settings;
 use Plenty\Modules\Plugin\DataBase\Contracts\Migrate;
 
-/**
- * Class CreateSettingsTable
- */
 class CreateSettingsTable
 {
 

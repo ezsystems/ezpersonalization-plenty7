@@ -7,11 +7,17 @@ use Yoochoose\Helpers\Data;
 use Plenty\Plugin\Controller;
 use Plenty\Plugin\Http\Request;
 use Plenty\Modules\Helper\Services\WebstoreHelper;
+use Plenty\Modules\Template\Design\Config\Models\Design;
 use Plenty\Plugin\Http\Response;
+use Plenty\Plugin\Log\Loggable;
+use IO\Services\SessionStorageService;
 
 class SettingsController extends Controller
 {
+    use Loggable;
+    
     const YOOCHOOSE_LICENSE_URL = 'https://admin.yoochoose.net/api/v4/';
+    const YOOCHOOSE_ADMIN_URL = '//admin.yoochoose.net/';
 
     /**
      * @var SettingsService
@@ -34,51 +40,74 @@ class SettingsController extends Controller
     private $response;
 
     /**
+     * @var Design
+     */
+    private $design;
+
+    /**
+     * @var SessionStorageService
+     */
+    private $sessionStorage;
+
+    /**
      * SettingsController constructor.
      * @param SettingsService $settingsService
      * @param Data $helper
      * @param WebstoreHelper $storeHelper
      * @param Response $response
+     * @param Design $design
+     * @param SessionStorageService $sessionStorage
      */
     public function __construct
     (
         SettingsService $settingsService,
         Data $helper,
         WebstoreHelper $storeHelper,
-        Response $response
+        Response $response,
+        Design $design,
+        SessionStorageService $sessionStorage
     ) {
         $this->settingsService = $settingsService;
         $this->helper = $helper;
         $this->storeHelper = $storeHelper;
         $this->response = $response;
+        $this->design = $design;
+        $this->sessionStorage = $sessionStorage;
     }
 
     /**
      * @param Request $request
-     * @return mixed|string
+     * @return \Symfony\Component\HttpFoundation\Response;
+     * @throws \Exception
      */
     public function saveSettings(Request $request)
     {
+        $endpoint = $this->settingsService->getSettingsValue('endpoint');
         $configFields = [];
 
-        $configFields['yc_test'] = $request->get('yc_test');
+        /** @var \Plenty\Modules\System\Models\WebstoreConfiguration $webstoreConfig */
+        $webstoreConfig = $this->storeHelper->getCurrentWebstoreConfiguration();
+        if (is_null($webstoreConfig)) {
+            return $this->response->json('Web store configurations cannot be fetched.');
+        }
+        $baseURL = $webstoreConfig->domain;
+
         $configFields['customer_id'] = $request->get('customer_id');
         $configFields['license_key'] = $request->get('license_key');
-        $configFields['plugin_id'] = $request->get('plugin_id');
-        $configFields['design'] = $request->get('design');
+        $configFields['plugin_id'] = !empty($request->get('plugin_id')) ? $request->get('plugin_id') : null;
         $configFields['item_type'] = $request->get('item_type');
         $configFields['script_id'] = $request->get('script_id');
         $configFields['search_enable'] = $request->get('search_enable');
         $configFields['performance'] = $request->get('performance');
         $configFields['log_severity'] = $request->get('log_severity');
-        $configFields['token'] = $request->get('token');
+
+
+        if (!$endpoint || $endpoint != $baseURL) {
+            $configFields['endpoint'] = $baseURL;
+        }
 
         foreach ($configFields as $key => $value) {
-            if(!empty($value)) {
                 switch ($key) {
-                    case 'yc_test':
-                        $this->settingsService->setSettingsValue('yc_test', $value);
-                        break;
                     case 'customer_id':
                         $this->settingsService->setSettingsValue('customer_id', $value);
                         break;
@@ -106,34 +135,22 @@ class SettingsController extends Controller
                     case 'log_severity':
                         $this->settingsService->setSettingsValue('log_severity', $value);
                         break;
-                    case 'token':
-                        $this->settingsService->setSettingsValue('token', $value);
+                    case 'endpoint':
+                        $this->settingsService->setSettingsValue('endpoint', $value);
                         break;
                 }
-            }
         }
 
-        $token = $this->settingsService->getSettingsValue('token');
-        if (!$token) {
-			throw new \Exception('Token must be set!');
-        }
-
-        /** @var \Plenty\Modules\System\Models\WebstoreConfiguration $webstoreConfig */
-        $webstoreConfig = $this->storeHelper->getCurrentWebstoreConfiguration();
-        if (is_null($webstoreConfig)) {
-            throw new \Exception('error');
-        }
-        $baseURL = $webstoreConfig->domain;
         $customerId = $this->settingsService->getSettingsValue('customer_id');
         $licenseKey = $this->settingsService->getSettingsValue('license_key');
 
         $body = [
             'base' => [
-                'type' => "MAGENTO2",
+                'type' => "PLENTY",
                 'pluginId' => $this->settingsService->getSettingsValue('plugin_id'),
                 'endpoint' => $baseURL,
                 'appKey' => '',
-                'appSecret' => $token,
+                'appSecret' => '',
             ],
             'frontend' => [
                 'design' => $this->settingsService->getSettingsValue('design'),
@@ -144,35 +161,60 @@ class SettingsController extends Controller
         ];
 
         $url = self::YOOCHOOSE_LICENSE_URL . $customerId . '/plugin/update?createIfNeeded=true&fallbackDesign=true';
-        $response = $this->helper->getHttpPage($url, $body, $customerId, $licenseKey);
-        $resault = json_decode($response);
 
-        if ($resault['statusCode'] == 200) {
-            return $this->response->json('User verification successful');
+        $response = $this->helper->getHttpPage($url, $body, $customerId, $licenseKey);
+
+        if ($response['statusCode'] == 200 || $response['statusCode'] == 409) {
+            $result = [
+                'status' => true,
+                'message' => 'Configuration successfully saved',
+            ];
         } else {
-            throw new \Exception('User is not verified!');
+            $result = [
+                'status' => false,
+                'message' =>  'Configuration saved but could not connect to YC. Error '
+                    . $response['statusCode'] . ' ' . $response['faultMessage'],
+            ];
         }
+
+        $this->getLogger('SettingsController_saveSettings')->info('Yoochoose::log.configurationSaved', []);
+
+        return $this->response->json($result);
     }
 
-    /**
+    /** 
+     * Load settings for configuration page
+     * 
      * @return bool|mixed
      */
     public function loadSettings()
     {
-        $data = array(
-            'yc_test' => $this->settingsService->getSettingsValue('yc_test'),
+        $designArray = $this->design->toArray();
+
+        $data = [
             'customer_id' => $this->settingsService->getSettingsValue('customer_id'),
             'license_key' => $this->settingsService->getSettingsValue('license_key'),
             'plugin_id' => $this->settingsService->getSettingsValue('plugin_id'),
-            'design' => $this->settingsService->getSettingsValue('design'),
+            'design' => $designArray,
             'item_type' => $this->settingsService->getSettingsValue('item_type'),
             'script_id' => $this->settingsService->getSettingsValue('script_id'),
             'search_enable' => $this->settingsService->getSettingsValue('search_enable'),
             'performance' => $this->settingsService->getSettingsValue('performance'),
             'log_severity' => $this->settingsService->getSettingsValue('log_severity'),
-            'token' => $this->settingsService->getSettingsValue('token'),
-        );
+            'endpoint' => $this->settingsService->getSettingsValue('endpoint'),
+            'register_url' => $this->getRegistrationLink(),
+        ];
+
         return $this->response->json($data);
     }
 
+    /** 
+     * Get registration URL
+     * 
+     * @return string
+     */
+    private function getRegistrationLink()
+    {
+        return self::YOOCHOOSE_ADMIN_URL . 'login.html?product=plenty_Direct&lang=' . $this->sessionStorage->getLang();
+    }
 }

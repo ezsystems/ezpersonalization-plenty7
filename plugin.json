@@ -1,14 +1,14 @@
 {
       "name":"Yoochoose",
-      "description":"My first plugin",
+      "description":"Yoochoose Plentymarkets Plugin",
       "namespace":"Yoochoose",
-      "author":"Test",
+      "author":"Yoochoose",
       "type":"template",
       "version": "1.0.0",
       "serviceProvider":"Yoochoose\\Providers\\YoochooseServiceProvider",
       "dataProviders": [
             {
-            "key":"Yoochoose\\Providers\\YoochooseServiceDataProvider",
+            "key":"Yoochoose\\Containers\\HeadContainer",
             "name":"Yoochoose Tracking",
             "description": "Yoochoose Tracking"
             }

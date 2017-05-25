@@ -5,13 +5,8 @@ namespace Yoochoose\Services;
 use Yoochoose\Models\Settings;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
 
-/**
- * Class SettingsService
- * @package Yoochoose\Services
- */
 class SettingsService
 {
-    const WEB_PROFILE = "yc_test";
     const CUSTOMER = "customer_id";
     const LICENCE = "license_key";
     const PLUGIN = "plugin_id";
@@ -21,24 +16,28 @@ class SettingsService
     const SEARCH = "search_enable";
     const PERFORMANCE = "performance";
     const LOG = "log_severity";
-    const TOKEN = "token";
-
+    const TOKEN = "auth_token";
+    const ENDPOINT = "endpoint";
+    const ENABLE = "enable_flag";
+    const PASSWORD = "yc_password";
 
     /**
      * @var array
      */
     private $settingsID = [
-        self::WEB_PROFILE => 1,
-        self::CUSTOMER => 2,
-        self::LICENCE => 3,
-        self::PLUGIN => 4,
-        self::DESIGN => 5,
-        self::TYPE => 6,
-        self::OVERWRITE => 7,
-        self::SEARCH => 8,
-        self::PERFORMANCE => 9,
-        self::LOG => 10,
-        self::TOKEN => 11,
+        self::CUSTOMER => 1,
+        self::LICENCE => 2,
+        self::PLUGIN => 3,
+        self::DESIGN => 4,
+        self::TYPE => 5,
+        self::OVERWRITE => 6,
+        self::SEARCH => 7,
+        self::PERFORMANCE => 8,
+        self::LOG => 9,
+        self::TOKEN => 10,
+        self::ENDPOINT => 11,
+        self::ENABLE => 12,
+        self::PASSWORD => 13,
     ];
 
     /**
@@ -64,18 +63,16 @@ class SettingsService
      */
     public function setSettingsValue(string $name, $value)
     {
-        if(!array_key_exists($name, $this->settingsID))
-        {
+        if (!array_key_exists($name, $this->settingsID)) {
             throw new \Exception('The given settings name is not defined!');
         }
 
         $settings = pluginApp(Settings::class);
 
-        if($settings instanceof Settings)
-        {
-            $settings->id        = $this->settingsID[$name];
-            $settings->name      = $name;
-            $settings->value     = (string) $value;
+        if ($settings instanceof Settings) {
+            $settings->id = $this->settingsID[$name];
+            $settings->name = $name;
+            $settings->value = !empty($value) ? (string)$value : null;
             $settings->createdAt = date('Y-m-d H:i:s');
             $settings->updatedAt = date('Y-m-d H:i:s');
 
@@ -92,16 +89,14 @@ class SettingsService
      */
     public function getSettingsValue(string $name)
     {
-        if(!array_key_exists($name, $this->settingsID))
-        {
+        if (!array_key_exists($name, $this->settingsID)) {
             throw new \Exception('The given settings name is not defined!');
         }
 
         /** @var Settings $settings */
         $settings = $this->dataBase->find(Settings::class, $this->settingsID[$name]);
 
-        if($settings instanceof Settings)
-        {
+        if ($settings instanceof Settings) {
             return $settings->value;
         }
 

@@ -41,10 +41,9 @@ class ExportHelper
      * @param int $limit
      * @param string $lang
      * @param int $transaction
-     * @param int $mandatorId
      * @return array postData
      */
-    public function export($lang, $transaction, $limit, $mandatorId)
+    public function export($lang, $transaction, $limit)
     {
         $shopIds = [];
         $formatsMap = [
@@ -58,7 +57,7 @@ class ExportHelper
             'events' => [],
         ];
 
-        /** @var @Data $dataHelper */
+        /** @var Data $dataHelper */
         $dataHelper = pluginApp(Data::class);
 
         foreach ($formatsMap as $format => $method) {
@@ -82,9 +81,9 @@ class ExportHelper
         foreach ($postData['events'] as $event) {
             $method = $formatsMap[$event['format']] ? $formatsMap[$event['format']] : null;
             if ($method) {
-                $postData = self::exportData($method, $postData, $limit, $i, $event['shopViewId'],
-                    $mandatorId, $event['lang']);
+                $postData = self::exportData($method, $postData, $limit, $i, $event['shopViewId'], $event['lang']);
             }
+
             $i++;
         }
 
@@ -118,13 +117,11 @@ class ExportHelper
      * @param int $limit
      * @param int $exportIndex
      * @param integer $shopId
-     * @param string $mandatorId
      * @param string $lang
      * @return array $postData
      */
-    private function exportData($method, $postData, $limit, $exportIndex, $shopId, $mandatorId, $lang)
+    private function exportData($method, $postData, $limit, $exportIndex, $shopId, $lang)
     {
-
         /** @var ExportModel $model */
         $model = pluginApp(ExportModel::class);
 

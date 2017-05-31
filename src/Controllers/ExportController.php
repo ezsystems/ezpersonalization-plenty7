@@ -19,6 +19,11 @@ class ExportController extends Controller
     use Loggable;
 
     /**
+     * @var int
+     */
+    protected $forceStart;
+
+    /**
      * @var string
      */
     protected $language;
@@ -138,19 +143,22 @@ class ExportController extends Controller
                 $this->limit = $this->request->get('limit');
                 $this->offset = $this->request->get('offset');
                 $this->language = $this->request->get('lang');
+                $this->forceStart = $this->request->get('forceStart', 0);
                 $this->shopId = $this->request->get('shop');
                 $this->mandator = $this->request->get('mandator');
                 $this->webHook = $this->request->get('webHook');
                 $this->transaction = $this->request->get('transaction');
 
+                $response = $this->response->json(['success' => $this->startExport()]);
             } else {
-                return $this->response->json(['Authentication failed'], 401);
+                $response = $this->response->json(['Authentication failed'], 401);
             }
-            $response = $this->startExport();
-            return $this->response->json(['success' => $response]);
+
         } catch (\Exception $exc) {
-            return $this->response->json($exc->getMessage(), 400);
+            $response = $this->response->json($exc->getMessage(), 400);
         }
+
+        return $response;
     }
 
     /**
@@ -160,6 +168,10 @@ class ExportController extends Controller
     private function startExport()
     {
         $post = [];
+        if ($this->forceStart) {
+            $this->settingsService->setSettingsValue('enable_flag', 0);
+        }
+
         $flag = $this->settingsService->getSettingsValue('enable_flag');
 
         if ($flag != 1) {

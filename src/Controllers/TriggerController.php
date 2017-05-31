@@ -88,7 +88,7 @@ class TriggerController extends Controller
             try {
                 $this->getLogger('TriggerController_export')->info('Yoochoose::log.exportStartedAllResources', []);
                 
-                $postData = $this->helper->export($lang, $transaction, $limit, $customerId);
+                $postData = $this->helper->export($lang, $transaction, $limit);
                 
                 $this->getLogger('TriggerController_export')->info('Yoochoose::log.exportFinishedAllResources', []);
                 

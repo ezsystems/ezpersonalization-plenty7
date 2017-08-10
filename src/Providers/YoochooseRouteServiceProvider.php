@@ -14,7 +14,8 @@ class YoochooseRouteServiceProvider extends RouteServiceProvider
         $router->get('yoochoose/products', 'Yoochoose\Controllers\FrontController@export');
         $router->get('yoochoose/export', 'Yoochoose\Controllers\ExportController@init');
         $router->get('yoochoose/trigger', 'Yoochoose\Controllers\TriggerController@export');
-        
+        $router->get('yoochoose/info', 'Yoochoose\Controllers\InfoController@init');
+
         //settings
         $router->post('yoochoose/settings/', 'Yoochoose\Controllers\SettingsController@saveSettings');
         $router->get('yoochoose/settings/', 'Yoochoose\Controllers\SettingsController@loadSettings');

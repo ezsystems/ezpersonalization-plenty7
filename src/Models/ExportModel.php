@@ -55,10 +55,11 @@ class ExportModel
         $categories = $searchCategories->toArray();
 
         foreach ($categories['entries'] as $category) {
+            $name = $this->getCategoryNameFromDetails($category['details'], $lang);
             $result[] = [
                 'id' => $category['id'],
                 'url' => $storeConf['domainSsl'] . '/' . $categoryRepository->getUrl((int)$category['id'], $lang),
-                'name' => $category['details'][0]['name'],
+                'name' => $name,
                 'level' => $category['level'],
                 'parentId' => $category['parentCategoryId'],
                 'path' => $categoryRepository->getUrl((int)$category['id'], $lang),
@@ -122,12 +123,13 @@ class ExportModel
         $products = $elasticSearchRepo->execute();
 
         foreach ($products['documents'] as $product) {
+
+            $texts = $this->getProductTexts($product['data']['texts'], $lang);
+
             $temp = [
                 'id' => $product['data']['variation']['itemId'],
-                'name' => isset($product['data']['texts'][0]['name1']) ?
-                    $product['data']['texts'][0]['name1'] : null,
-                'description' => isset($product['data']['texts'][0]['description']) ?
-                    $product['data']['texts'][0]['description'] : null,
+                'name' => isset($texts['name1']) ? $texts['name1'] : null,
+                'description' => isset($texts['description']) ? $texts['description'] : null,
                 'price' => $this->getProductPrice($product['data']['salesPrices']),
                 'url' => $storeConf['domainSsl'] .
                     $urlFilter->buildVariationURL((int)$product['data']['variation']['id'], true),
@@ -140,24 +142,49 @@ class ExportModel
                 'shopId' => $shopId,
             ];
 
-            $imageInfo = getimagesize($temp['image']);
-            if (is_array($imageInfo)) {
-                $temp['image_size'] = $imageInfo[0] . 'x' . $imageInfo[1];
-            }
-
             if (isset($product['data']['texts'][0]['keywords']) && !empty($product['data']['texts'][0]['keywords'])) {
                 $temp['tags'] = explode(',', $product['data']['texts'][0]['keywords']);
             }
 
             $categoryIds = explode(',', $product['data']['categories']['paths'][0]);
+            $categories = [];
             foreach ($categoryIds as $categoryId) {
-                $temp['categories'][] = $categoryRepository->getUrl((int)$categoryId, $lang);
+                $category = $categoryRepository->get((int)$categoryId, $lang);
+                if ($category) {
+                    $categories[] = $category->toArray();
+                }
             }
+            $temp['categories'] = $this->extractCategoriesPaths($categories);
 
             $result[] = $temp;
         }
 
         return $result;
+    }
+
+    /**
+     * Returns names of categories separated by slash
+     *
+     * @param array $categories
+     * @return array
+     */
+    private function extractCategoriesPaths($categories)
+    {
+        $result = [];
+
+        foreach ($categories as $category) {
+            $parentId = $category['parentCategoryId'];
+            if (isset($parentId)) {
+                if (array_key_exists($parentId, $result)) {
+                    $result[$category['id']] = $result[$parentId] . '/' . $category['details'][0]['name'];
+                }
+
+            } else {
+                $result[$category['id']] = $category['details'][0]['name'];
+            }
+        }
+
+        return array_values($result);
     }
 
     /**
@@ -205,5 +232,35 @@ class ExportModel
         }
 
         return $price;
+    }
+
+    /**
+     * Extracting category name from details array for given language slag
+     *
+     * @param array $details
+     * @param string $lang
+     * @return string
+     */
+    private function getCategoryNameFromDetails($details, $lang) {
+        foreach ($details as $detail) {
+            if ($detail['lang'] === $lang) {
+                return $detail['name'];
+            }
+        }
+        return '';
+    }
+
+    /**
+     * @param array $texts
+     * @param string $lang
+     * @return array
+     */
+    private function getProductTexts($texts, $lang) {
+        foreach ($texts as $text) {
+            if ($text['lang'] === $lang) {
+                return $text;
+            }
+        }
+        return array();
     }
 }

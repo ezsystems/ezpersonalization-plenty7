@@ -5,8 +5,11 @@ namespace Yoochoose\Containers;
 use Yoochoose\Services\SettingsService;
 use Yoochoose\Helpers\Data;
 use Plenty\Plugin\Templates\Twig;
+use Plenty\Modules\Order\Contracts\OrderRepositoryContract;
 use IO\Services\WebstoreConfigurationService;
 use IO\Services\TemplateService;
+use IO\Services\SessionStorageService;
+use IO\Constants\SessionStorageKeys;
 
 class HeadContainer
 {
@@ -21,13 +24,14 @@ class HeadContainer
      * @param Twig $twig
      * @param TemplateService $templateService
      * @param SettingsService $settingsService
+     * @param SessionStorageService $sessionStorage
+     * @param OrderRepositoryContract $orderRepositoryContract
      * @return string
      * @throws \Exception
      */
-    public function call(Twig $twig, TemplateService $templateService, SettingsService $settingsService):string
+    public function call(Twig $twig, templateService $templateService, SettingsService $settingsService,
+                         SessionStorageService $sessionStorage, OrderRepositoryContract $orderRepositoryContract):string
     {
-        $currentPage = '';
-
         $mandator = $settingsService->getSettingsValue('customer_id');
         $plugin = $settingsService->getSettingsValue('plugin_id');
         $ycOverwriteEndpoint = $settingsService->getSettingsValue('script_id');
@@ -43,14 +47,36 @@ class HeadContainer
 
         $currentTemplate = $templateService->getCurrentTemplate();
 
-        if ($currentTemplate === 'tpl.item') {
-            $currentPage = 'product';
-        } else if ($currentTemplate === 'tpl.category.item') {
-            $currentPage = 'category';
-        } else if ($currentTemplate === 'tpl.basket') {
-            $currentPage = 'cart';
-        } else if ($currentTemplate === 'tpl.home') {
-            $currentPage = 'home';
+        switch ($currentTemplate) {
+            case 'tpl.item':
+                $currentPage = 'product';
+                break;
+            case 'tpl.category.item':
+                $currentPage = 'category';
+                break;
+            case 'tpl.basket':
+                $currentPage = 'cart';
+                break;
+            case 'tpl.home':
+                $currentPage = 'home';
+                break;
+            default:
+                $currentPage = '';
+                break;
+        }
+
+        $order = '';
+        if ($currentTemplate === 'tpl.confirmation') {
+            $orderId = $sessionStorage->getSessionValue(SessionStorageKeys::LATEST_ORDER_ID);
+            $order = $orderRepositoryContract->findOrderById($orderId)->toArray();
+            foreach ($order['orderItems'] as $orderItems) {
+                $orderDetails[] = [
+                    'itemId' => $orderItems['id'],
+                    'quantity' => $orderItems['quantity'],
+                    'price' => $orderItems['id'],
+                    'currency' => $orderItems['id'],
+                ];
+            }
         }
 
         if ($ycOverwriteEndpoint) {
@@ -60,12 +86,14 @@ class HeadContainer
             $scriptUrl = $settingsService->getSettingsValue('performance') == 1 ?
                 self::AMAZON_CDN_SCRIPT : self::YOOCHOOSE_CDN_SCRIPT;
         }
-
-        $scriptUrl = $scriptUrl . "v1/{$mandator}/{$plugin}/tracking.";
+        
+        $scriptUrl = rtrim($scriptUrl, '/') . '/';
+        $scriptUrl = $scriptUrl . "v1/{$mandator}{$plugin}/tracking.";
 
         $template = [
             'shopUrl' => $storeConf['domainSsl'] . '/',
             'webStoreId' => $dataHelper->getStoreId(),
+            'orderData' => json_encode($order),
             'currentPage' => $currentPage,
             'ycCustomerId' => $mandator,
             'ycEnableSearch' => $ycEnableSearch,

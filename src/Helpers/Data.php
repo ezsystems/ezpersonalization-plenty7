@@ -3,9 +3,11 @@
 namespace Yoochoose\Helpers;
 
 use Plenty\Plugin\Application;
+use Plenty\Plugin\Log\Loggable;
 
 class Data
 {
+    use Loggable;
 
     /**
      * @var Application
@@ -52,7 +54,7 @@ class Data
         $response = curl_exec($curl);
         $result = json_decode($response, true);
 
-//        $this->getLogger('SettingsController_saveSettings')->info('Yoochoose::log.configurationSaved', []);
+        $this->getLogger('Data_getHttpPage')->info('Yoochoose::log.configurationSaved', []);
         
         curl_close($curl);
         

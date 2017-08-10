@@ -19,11 +19,6 @@ class ExportController extends Controller
     use Loggable;
 
     /**
-     * @var int
-     */
-    protected $forceStart;
-
-    /**
      * @var string
      */
     protected $language;
@@ -143,22 +138,18 @@ class ExportController extends Controller
                 $this->limit = $this->request->get('limit');
                 $this->offset = $this->request->get('offset');
                 $this->language = $this->request->get('lang');
-                $this->forceStart = $this->request->get('forceStart', 0);
                 $this->shopId = $this->request->get('shop');
                 $this->mandator = $this->request->get('mandator');
                 $this->webHook = $this->request->get('webHook');
                 $this->transaction = $this->request->get('transaction');
-
-                $response = $this->response->json(['success' => $this->startExport()]);
             } else {
-                $response = $this->response->json(['Authentication failed'], 401);
+                return $this->response->json(['Authentication failed'], 401);
             }
-
+            $response = $this->startExport();
+            return $this->response->json(['success' => $response]);
         } catch (\Exception $exc) {
-            $response = $this->response->json($exc->getMessage(), 400);
+            return $this->response->json($exc->getMessage(), 400);
         }
-
-        return $response;
     }
 
     /**
@@ -168,7 +159,8 @@ class ExportController extends Controller
     private function startExport()
     {
         $post = [];
-        if ($this->forceStart) {
+
+        if (!empty($this->request->get('forceStart'))) {
             $this->settingsService->setSettingsValue('enable_flag', 0);
         }
 
@@ -177,7 +169,7 @@ class ExportController extends Controller
         if ($flag != 1) {
             $requestUri = $_SERVER['REQUEST_URI'];
             $queryString = substr($requestUri, strpos($requestUri, '?') + 1);
-            $this->getLogger('ExportController_start')->info('PMTest::log.exportStarted' . $queryString, []);
+            $this->getLogger('ExportController_start')->info('Yoochoose::log.exportStarted' . $queryString, []);
 
             $post['mandator'] = $this->mandator;
             $post['limit'] = $this->limit;

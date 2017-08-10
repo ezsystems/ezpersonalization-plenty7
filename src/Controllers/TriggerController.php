@@ -74,6 +74,7 @@ class TriggerController extends Controller
      */
     public function export()
     {
+        $this->getLogger('TriggerController_export')->info('Yoochoose::log.triggerExportStarted', []);
         $limit = $this->request->get('limit');
         $callbackUrl = $this->request->get('webHook');
         $postPassword = $this->request->get('password');
@@ -86,18 +87,16 @@ class TriggerController extends Controller
         if ($password == $postPassword) {
             $this->settingsService->setSettingsValue('enable_flag', 1);
             try {
-                $this->getLogger('TriggerController_export')->info('Yoochoose::log.exportStartedAllResources', []);
-                
-                $postData = $this->helper->export($lang, $transaction, $limit);
-                
-                $this->getLogger('TriggerController_export')->info('Yoochoose::log.exportFinishedAllResources', []);
-                
+                $postData = $this->helper->export($lang, $transaction, $limit, $customerId);
                 $this->setCallback($callbackUrl, $postData, $customerId, $licenceKey);
-
                 $response['success'] = true;
             } catch (\Exception $e) {
                 $response['success'] = false;
                 $response['message'] = $e->getMessage();
+                $this->getLogger('TriggerController_export')->info(
+                    'Yoochoose::log.triggerExportFailed' . $e->getMessage(),
+                    []
+                );
             } finally {
                 $this->settingsService->setSettingsValue('enable_flag', 0);
             }
@@ -134,6 +133,11 @@ class TriggerController extends Controller
         curl_setopt($cURL, CURLOPT_HEADER, true);
 
         $response = curl_exec($cURL);
+
+        $this->getLogger('TriggerController_setCallback')->info(
+            'Yoochoose::log.callbackSent' . $url,
+            ['post' => $postString]
+        );
 
         curl_close($cURL);
 

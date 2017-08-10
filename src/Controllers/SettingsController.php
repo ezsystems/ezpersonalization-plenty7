@@ -15,7 +15,7 @@ use IO\Services\SessionStorageService;
 class SettingsController extends Controller
 {
     use Loggable;
-    
+
     const YOOCHOOSE_LICENSE_URL = 'https://admin.yoochoose.net/api/v4/';
     const YOOCHOOSE_ADMIN_URL = '//admin.yoochoose.net/';
 
@@ -172,7 +172,7 @@ class SettingsController extends Controller
         } else {
             $result = [
                 'status' => false,
-                'message' =>  'Configuration saved but could not connect to YC. Error '
+                'message' =>  'Configuration saved but could not connect to Yoochoose. Error '
                     . $response['statusCode'] . ' ' . $response['faultMessage'],
             ];
         }
@@ -182,9 +182,9 @@ class SettingsController extends Controller
         return $this->response->json($result);
     }
 
-    /** 
+    /**
      * Load settings for configuration page
-     * 
+     *
      * @return bool|mixed
      */
     public function loadSettings()
@@ -208,9 +208,9 @@ class SettingsController extends Controller
         return $this->response->json($data);
     }
 
-    /** 
+    /**
      * Get registration URL
-     * 
+     *
      * @return string
      */
     private function getRegistrationLink()

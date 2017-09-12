@@ -14,7 +14,7 @@ class InfoController extends Controller
 {
     use Loggable;
 
-    const YOOCHOOSE_CDN_SCRIPT = '//event.test.yoochoose.net/cdn';
+    const YOOCHOOSE_CDN_SCRIPT = '//event.yoochoose.net/cdn';
     const AMAZON_CDN_SCRIPT = '//cdn.yoochoose.net';
     const SHOP_VERSION = '7.0.0';
     const PLUGIN_VERSION = '1.0.0';

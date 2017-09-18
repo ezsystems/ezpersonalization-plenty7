@@ -59,9 +59,9 @@ class ExportHelper
         $this->getLogger('ExportHelper_export')->info('Yoochoose::log.exportStartedAllResources', []);
         $shopIds = [];
         $formatsMap = [
-            'PLENTY' => 'Products',
-            'PLENTY_CATEGORIES' => 'Categories',
-            'PLENTY_VENDORS' => 'Vendors',
+            'PLENTY7' => 'Products',
+            'PLENTY7_CATEGORIES' => 'Categories',
+            'PLENTY7_VENDORS' => 'Vendors',
         ];
 
         $postData = [

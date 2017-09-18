@@ -10,6 +10,7 @@ use IO\Services\WebstoreConfigurationService;
 use IO\Services\TemplateService;
 use IO\Services\SessionStorageService;
 use IO\Constants\SessionStorageKeys;
+use IO\Services\CustomerService;
 
 class HeadContainer
 {
@@ -30,9 +31,11 @@ class HeadContainer
      * @throws \Exception
      */
     public function call(Twig $twig, templateService $templateService, SettingsService $settingsService,
-                         SessionStorageService $sessionStorage, OrderRepositoryContract $orderRepositoryContract):string
+                         SessionStorageService $sessionStorage, OrderRepositoryContract $orderRepositoryContract,
+                         CustomerService $customerService):string
     {
         $mandator = $settingsService->getSettingsValue('customer_id');
+        $customerId = $customerService->getContactId();
         $plugin = $settingsService->getSettingsValue('plugin_id');
         $ycOverwriteEndpoint = $settingsService->getSettingsValue('script_id');
         $ycEnableSearch = $settingsService->getSettingsValue('search_enable');
@@ -95,7 +98,7 @@ class HeadContainer
             'webStoreId' => $dataHelper->getStoreId(),
             'orderData' => json_encode($order),
             'currentPage' => $currentPage,
-            'ycCustomerId' => $mandator,
+            'ycCustomerId' => (int)$customerId,
             'ycEnableSearch' => $ycEnableSearch,
             'ycJsScript' => $scriptUrl . 'js',
             'ycCssScript' => $scriptUrl . 'css',

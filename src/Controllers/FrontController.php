@@ -85,32 +85,40 @@ class FrontController extends Controller
 
         if (!empty($productIds)) {
             foreach ($productIds as $productId) {
-                $product = $this->getItem([$productId])->current();
 
-                if (!empty($product->variationImageList[0])) {
-                    $imageUrl = $product->variationImageList[0]->path;
-                } else {
-                    $imageUrl = str_replace(
-                        'S3:',
-                        'item/images/',
-                        $this->itemService->getVariationImage((int)$product->variationBase->id)
-                    );
-                    $imageUrl = str_replace($productId . ':', $productId . '/3000x3000/', $imageUrl);
+                try {
+                    $product = $this->getItem([$productId])->current();
+                } catch (\Exception $e) {
+                    // SQL error is thrown if there's not product with ID
+                    $product = false;
                 }
 
-                $variationUrl = $this->urlFilter->buildVariationURL((int)$product->variationBase->id, true);
+                if ($product) {
+                    if (!empty($product->variationImageList[0])) {
+                        $imageUrl = $product->variationImageList[0]->path;
+                    } else {
+                        $imageUrl = str_replace(
+                            'S3:',
+                            'item/images/',
+                            $this->itemService->getVariationImage((int)$product->variationBase->id)
+                        );
+                        $imageUrl = str_replace($productId . ':', $productId . '/3000x3000/', $imageUrl);
+                    }
 
-                $products[] = [
-                    'id' => $productId,
-                    'link' => $storeConf['domainSsl'] . '/' . $product->itemDescription->urlContent . '_' .
-                        ltrim($variationUrl, '/'),
-                    'newPrice' => isset($product->variationRetailPrice->price) ?
-                        $product->variationRetailPrice->price : null,
-                    'oldPrice' => isset($product->variationRecommendedRetailPrice->price) ?
-                        $product->variationRecommendedRetailPrice->price : null,
-                    'image' => $storeConf['domainSsl'] . '/' . $imageUrl,
-                    'title' => $product->itemDescription->name1,
-                ];
+                    $variationUrl = $this->urlFilter->buildVariationURL((int)$product->variationBase->id, true);
+
+                    $products[] = [
+                        'id' => $productId,
+                        'link' => $storeConf['domainSsl'] . '/' . $product->itemDescription->urlContent . '_' .
+                            ltrim($variationUrl, '/'),
+                        'newPrice' => isset($product->variationRetailPrice->price) ?
+                            $product->variationRetailPrice->price : null,
+                        'oldPrice' => isset($product->variationRecommendedRetailPrice->price) ?
+                            $product->variationRecommendedRetailPrice->price : null,
+                        'image' => $storeConf['domainSsl'] . '/' . $imageUrl,
+                        'title' => $product->itemDescription->name1,
+                    ];
+                }
             }
         }
 

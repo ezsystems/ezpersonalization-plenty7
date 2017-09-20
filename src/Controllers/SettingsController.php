@@ -94,7 +94,7 @@ class SettingsController extends Controller
 
         $configFields['customer_id'] = $request->get('customer_id');
         $configFields['license_key'] = $request->get('license_key');
-        $configFields['plugin_id'] = !empty($request->get('plugin_id')) ? $request->get('plugin_id') : null;
+        $configFields['plugin_id'] = $request->get('plugin_id');
         $configFields['item_type'] = $request->get('item_type');
         $configFields['script_id'] = $request->get('script_id');
         $configFields['search_enable'] = $request->get('search_enable');
@@ -146,11 +146,11 @@ class SettingsController extends Controller
 
         $body = [
             'base' => [
-                'type' => "PLENTY",
+                'type' => "PLENTY7",
                 'pluginId' => $this->settingsService->getSettingsValue('plugin_id'),
                 'endpoint' => $baseURL,
                 'appKey' => '',
-                'appSecret' => '',
+                'appSecret' => md5($configFields['license_key']),
             ],
             'frontend' => [
                 'design' => $this->settingsService->getSettingsValue('design'),

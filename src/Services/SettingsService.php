@@ -72,7 +72,7 @@ class SettingsService
         if ($settings instanceof Settings) {
             $settings->id = $this->settingsID[$name];
             $settings->name = $name;
-            $settings->value = !empty($value) ? (string)$value : null;
+            $settings->value = !empty($value) ? (string)$value : '';
             $settings->createdAt = date('Y-m-d H:i:s');
             $settings->updatedAt = date('Y-m-d H:i:s');
 

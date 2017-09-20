@@ -2,6 +2,7 @@
 
 namespace Yoochoose\Controllers;
 
+use Plenty\Modules\Template\Design\Config\Contracts\DesignRepositoryContract;
 use Yoochoose\Services\SettingsService;
 use Yoochoose\Helpers\Data;
 use Plenty\Plugin\Controller;
@@ -42,7 +43,7 @@ class SettingsController extends Controller
     /**
      * @var Design
      */
-    private $design;
+    private $designRepository;
 
     /**
      * @var SessionStorageService
@@ -55,7 +56,7 @@ class SettingsController extends Controller
      * @param Data $helper
      * @param WebstoreHelper $storeHelper
      * @param Response $response
-     * @param Design $design
+     * @param DesignRepositoryContract $designRepository
      * @param SessionStorageService $sessionStorage
      */
     public function __construct
@@ -64,14 +65,14 @@ class SettingsController extends Controller
         Data $helper,
         WebstoreHelper $storeHelper,
         Response $response,
-        Design $design,
+        DesignRepositoryContract $designRepository,
         SessionStorageService $sessionStorage
     ) {
         $this->settingsService = $settingsService;
         $this->helper = $helper;
         $this->storeHelper = $storeHelper;
         $this->response = $response;
-        $this->design = $design;
+        $this->designRepository = $designRepository;
         $this->sessionStorage = $sessionStorage;
     }
 
@@ -82,7 +83,6 @@ class SettingsController extends Controller
      */
     public function saveSettings(Request $request)
     {
-        $endpoint = $this->settingsService->getSettingsValue('endpoint');
         $configFields = [];
 
         /** @var \Plenty\Modules\System\Models\WebstoreConfiguration $webstoreConfig */
@@ -100,11 +100,7 @@ class SettingsController extends Controller
         $configFields['search_enable'] = $request->get('search_enable');
         $configFields['performance'] = $request->get('performance');
         $configFields['log_severity'] = $request->get('log_severity');
-
-
-        if (!$endpoint || $endpoint != $baseURL) {
-            $configFields['endpoint'] = $baseURL;
-        }
+        $configFields['endpoint'] = $baseURL;
 
         foreach ($configFields as $key => $value) {
                 switch ($key) {
@@ -189,7 +185,7 @@ class SettingsController extends Controller
      */
     public function loadSettings()
     {
-        $designArray = $this->design->toArray();
+        $designArray = $this->designRepository->loadAll();
 
         $data = [
             'customer_id' => $this->settingsService->getSettingsValue('customer_id'),

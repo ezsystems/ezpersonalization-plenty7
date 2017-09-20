@@ -5,9 +5,16 @@ namespace Yoochoose\Exceptions;
 class IntegrationRegistrationException extends \Exception
 {
 
-    public static function because(string $message)
+    /**
+     * Create a new exception for the given reason.
+     *
+     * @param string $reason
+     *
+     * @return static
+     */
+    public static function because($reason)
     {
-        return new self($message);
+        return pluginApp(static::class, [$reason]);
     }
 
 }

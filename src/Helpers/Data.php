@@ -84,7 +84,7 @@ class Data
             'requestBody' => $body,
             'status' => $status,
             'headers' => $headers,
-            'response' => $response,
+            'response' => $result,
         ]);
 
         $eno = curl_errno($curl);

@@ -2,15 +2,15 @@
 
 namespace Yoochoose\Containers;
 
-use Yoochoose\Services\SettingsService;
-use Yoochoose\Helpers\Data;
-use Plenty\Plugin\Templates\Twig;
-use Plenty\Modules\Order\Contracts\OrderRepositoryContract;
-use IO\Services\WebstoreConfigurationService;
-use IO\Services\TemplateService;
-use IO\Services\SessionStorageService;
 use IO\Constants\SessionStorageKeys;
 use IO\Services\CustomerService;
+use IO\Services\SessionStorageService;
+use IO\Services\TemplateService;
+use IO\Services\WebstoreConfigurationService;
+use Plenty\Modules\Order\Contracts\OrderRepositoryContract;
+use Plenty\Plugin\Templates\Twig;
+use Yoochoose\Helpers\Data;
+use Yoochoose\Services\SettingsService;
 
 class HeadContainer
 {
@@ -27,12 +27,17 @@ class HeadContainer
      * @param SettingsService $settingsService
      * @param SessionStorageService $sessionStorage
      * @param OrderRepositoryContract $orderRepositoryContract
+     * @param CustomerService $customerService
      * @return string
-     * @throws \Exception
      */
-    public function call(Twig $twig, templateService $templateService, SettingsService $settingsService,
-                         SessionStorageService $sessionStorage, OrderRepositoryContract $orderRepositoryContract,
-                         CustomerService $customerService):string
+    public function call(
+        Twig $twig,
+        templateService $templateService,
+        SettingsService $settingsService,
+        SessionStorageService $sessionStorage,
+        OrderRepositoryContract $orderRepositoryContract,
+        CustomerService $customerService
+    ): string
     {
         $mandator = $settingsService->getSettingsValue('customer_id');
         $customerId = $customerService->getContactId();
@@ -85,11 +90,11 @@ class HeadContainer
         if ($ycOverwriteEndpoint) {
             $scriptOverwrite = (!preg_match('/^(http|\/\/)/', $ycOverwriteEndpoint) ? '//' : '') . $ycOverwriteEndpoint;
             $scriptUrl = preg_replace('(^https?:)', '', $scriptOverwrite);
-        }  else {
+        } else {
             $scriptUrl = $settingsService->getSettingsValue('performance') == 1 ?
                 self::AMAZON_CDN_SCRIPT : self::YOOCHOOSE_CDN_SCRIPT;
         }
-        
+
         $scriptUrl = rtrim($scriptUrl, '/') . '/';
         $scriptUrl = $scriptUrl . "v1/{$mandator}{$plugin}/tracking.";
 

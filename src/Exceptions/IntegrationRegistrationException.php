@@ -4,6 +4,14 @@ namespace Yoochoose\Exceptions;
 
 class IntegrationRegistrationException extends \Exception
 {
+    /**
+     * IntegrationRegistrationException constructor.
+     * @param string $message
+     */
+    public function __construct(string $message)
+    {
+        parent::__construct($message);
+    }
 
     /**
      * Create a new exception for the given reason.
@@ -12,9 +20,9 @@ class IntegrationRegistrationException extends \Exception
      *
      * @return static
      */
-    public static function because($reason)
+    public static function because(string $reason)
     {
-        return pluginApp(static::class, [$reason]);
+        return pluginApp(IntegrationRegistrationException::class, [$reason]);
     }
 
 }

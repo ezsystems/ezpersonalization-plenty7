@@ -2,6 +2,8 @@
 
 namespace Yoochoose\Helpers;
 
+use Plenty\Modules\Helper\Services\WebstoreHelper;
+use Plenty\Modules\Template\Design\Config\Contracts\DesignRepositoryContract;
 use Plenty\Plugin\Application;
 use Plenty\Plugin\Log\Loggable;
 
@@ -10,14 +12,34 @@ class Data
     use Loggable;
 
     /**
+     * @var DesignRepositoryContract
+     */
+    private $designRepository;
+
+    /**
+     * @var WebstoreHelper
+     */
+    private $storeHelper;
+
+    /**
      * @var Application
      */
     private $app;
 
+    /**
+     * Data constructor.
+     * @param Application $app
+     * @param WebstoreHelper $storeHelper
+     * @param DesignRepositoryContract $designRepository
+     */
     public function __construct(
-        Application $app
+        Application $app,
+        WebstoreHelper $storeHelper,
+        DesignRepositoryContract $designRepository
     ){
         $this->app = $app;
+        $this->storeHelper = $storeHelper;
+        $this->designRepository = $designRepository;
     }
     
     public function getStoreId()
@@ -60,4 +82,34 @@ class Data
         
         return $result;
     }
+
+
+    /**
+     * Returns base url of the store
+     *
+     * @return string
+     */
+    public function getWebsiteBaseUrl()
+    {
+        /** @var \Plenty\Modules\System\Models\WebstoreConfiguration $webStoreConfig */
+        $webStoreConfig = $this->storeHelper->getCurrentWebstoreConfiguration();
+        if (is_null($webStoreConfig)) {
+            return '';
+        }
+
+        return $webStoreConfig->domain;
+    }
+
+    /**
+     * Returns default design template
+     *
+     * @return string
+     */
+    public function getDefaultDesign()
+    {
+        $designArray = $this->designRepository->loadAll();
+
+        return $designArray[0]['designName'] ?? '';
+    }
+
 }

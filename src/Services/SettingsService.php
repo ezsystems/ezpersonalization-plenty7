@@ -84,10 +84,11 @@ class SettingsService
      * Get the settings value
      *
      * @param string $name
+     * @param null $default
      * @return bool|mixed
      * @throws \Exception
      */
-    public function getSettingsValue(string $name)
+    public function getSettingsValue(string $name, $default = null)
     {
         if (!array_key_exists($name, $this->settingsID)) {
             throw new \Exception('The given settings name is not defined!');
@@ -100,6 +101,6 @@ class SettingsService
             return $settings->value;
         }
 
-        return false;
+        return $default;
     }
 }

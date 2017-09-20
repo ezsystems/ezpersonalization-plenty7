@@ -89,7 +89,7 @@ class InfoController extends Controller
                     'plugin_id' => $pluginId,
                     'endpoint' => $this->settingsService->getSettingsValue('endpoint'),
                     'design' => $this->settingsService->getSettingsValue('design'),
-                    'itemtype' => $this->settingsService->getSettingsValue('item_type'),
+                    'itemtype' => $this->settingsService->getSettingsValue('item_type', 1),
                     'script_uris' => [
                         $scriptUrl . 'js',
                         $scriptUrl . 'css'

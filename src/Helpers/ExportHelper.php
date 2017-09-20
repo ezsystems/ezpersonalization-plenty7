@@ -71,7 +71,7 @@ class ExportHelper
 
         $languages = empty($lang) ? $this->webstoreConfigurationService->getActiveLanguageList() : [$lang];
 
-        /** @var @Data $dataHelper */
+        /** @var Data $dataHelper */
         $dataHelper = pluginApp(Data::class);
 
         foreach ($formatsMap as $format => $method) {
@@ -79,7 +79,7 @@ class ExportHelper
                 $postData['events'][] = [
                     'action' => 'FULL',
                     'format' => $format,
-                    'contentTypeId' => $this->settingsService->getSettingsValue('item_type'),
+                    'contentTypeId' => $this->settingsService->getSettingsValue('item_type', 1),
                     'shopViewId' => $dataHelper->getStoreId(),
                     'lang' => $language,
                     'credentials' => [

@@ -2,13 +2,10 @@
 
 namespace Yoochoose\Controllers;
 
-use Plenty\Modules\Template\Design\Config\Contracts\DesignRepositoryContract;
 use Yoochoose\Services\SettingsService;
 use Yoochoose\Helpers\Data;
 use Plenty\Plugin\Controller;
 use Plenty\Plugin\Http\Request;
-use Plenty\Modules\Helper\Services\WebstoreHelper;
-use Plenty\Modules\Template\Design\Config\Models\Design;
 use Plenty\Plugin\Http\Response;
 use Plenty\Plugin\Log\Loggable;
 use IO\Services\SessionStorageService;
@@ -31,19 +28,9 @@ class SettingsController extends Controller
     private $helper;
 
     /**
-     * @var WebstoreHelper
-     */
-    private $storeHelper;
-
-    /**
      * @var Response
      */
     private $response;
-
-    /**
-     * @var Design
-     */
-    private $designRepository;
 
     /**
      * @var SessionStorageService
@@ -54,25 +41,19 @@ class SettingsController extends Controller
      * SettingsController constructor.
      * @param SettingsService $settingsService
      * @param Data $helper
-     * @param WebstoreHelper $storeHelper
      * @param Response $response
-     * @param DesignRepositoryContract $designRepository
      * @param SessionStorageService $sessionStorage
      */
     public function __construct
     (
         SettingsService $settingsService,
         Data $helper,
-        WebstoreHelper $storeHelper,
         Response $response,
-        DesignRepositoryContract $designRepository,
         SessionStorageService $sessionStorage
     ) {
         $this->settingsService = $settingsService;
         $this->helper = $helper;
-        $this->storeHelper = $storeHelper;
         $this->response = $response;
-        $this->designRepository = $designRepository;
         $this->sessionStorage = $sessionStorage;
     }
 
@@ -85,22 +66,18 @@ class SettingsController extends Controller
     {
         $configFields = [];
 
-        /** @var \Plenty\Modules\System\Models\WebstoreConfiguration $webstoreConfig */
-        $webstoreConfig = $this->storeHelper->getCurrentWebstoreConfiguration();
-        if (is_null($webstoreConfig)) {
-            return $this->response->json('Web store configurations cannot be fetched.');
-        }
-        $baseURL = $webstoreConfig->domain;
-
         $configFields['customer_id'] = $request->get('customer_id');
         $configFields['license_key'] = $request->get('license_key');
         $configFields['plugin_id'] = $request->get('plugin_id');
-        $configFields['item_type'] = $request->get('item_type');
+        $configFields['item_type'] = $request->get('item_type', 1);
         $configFields['script_id'] = $request->get('script_id');
         $configFields['search_enable'] = $request->get('search_enable');
-        $configFields['performance'] = $request->get('performance');
-        $configFields['log_severity'] = $request->get('log_severity');
-        $configFields['endpoint'] = $baseURL;
+        $configFields['performance'] = $request->get('performance', 1);
+        $configFields['log_severity'] = $request->get('log_severity', 2);
+        $configFields['design'] = $this->helper->getDefaultDesign();
+
+        $baseUrl = $this->helper->getWebsiteBaseUrl();
+        $configFields['endpoint'] = $baseUrl;
 
         foreach ($configFields as $key => $value) {
                 switch ($key) {
@@ -144,7 +121,7 @@ class SettingsController extends Controller
             'base' => [
                 'type' => "PLENTY7",
                 'pluginId' => $this->settingsService->getSettingsValue('plugin_id'),
-                'endpoint' => $baseURL,
+                'endpoint' => $baseUrl,
                 'appKey' => '',
                 'appSecret' => md5($configFields['license_key']),
             ],
@@ -185,19 +162,17 @@ class SettingsController extends Controller
      */
     public function loadSettings()
     {
-        $designArray = $this->designRepository->loadAll();
-
         $data = [
             'customer_id' => $this->settingsService->getSettingsValue('customer_id'),
             'license_key' => $this->settingsService->getSettingsValue('license_key'),
             'plugin_id' => $this->settingsService->getSettingsValue('plugin_id'),
-            'design' => $designArray,
-            'item_type' => $this->settingsService->getSettingsValue('item_type'),
+            'design' => $this->helper->getDefaultDesign(),
+            'item_type' => $this->settingsService->getSettingsValue('item_type', 1),
             'script_id' => $this->settingsService->getSettingsValue('script_id'),
-            'search_enable' => $this->settingsService->getSettingsValue('search_enable'),
-            'performance' => $this->settingsService->getSettingsValue('performance'),
+            'search_enable' => $this->settingsService->getSettingsValue('search_enable', 2),
+            'performance' => $this->settingsService->getSettingsValue('performance', 1),
             'log_severity' => $this->settingsService->getSettingsValue('log_severity'),
-            'endpoint' => $this->settingsService->getSettingsValue('endpoint'),
+            'endpoint' => $this->helper->getWebsiteBaseUrl(),
             'register_url' => $this->getRegistrationLink(),
         ];
 
@@ -213,4 +188,5 @@ class SettingsController extends Controller
     {
         return self::YOOCHOOSE_ADMIN_URL . 'login.html?product=plenty_Direct&lang=' . $this->sessionStorage->getLang();
     }
+
 }

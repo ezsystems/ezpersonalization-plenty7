@@ -2,6 +2,7 @@
 
 namespace Yoochoose\Controllers;
 
+use Yoochoose\Exceptions\IntegrationRegistrationException;
 use Yoochoose\Services\SettingsService;
 use Yoochoose\Helpers\Data;
 use Plenty\Plugin\Controller;
@@ -134,23 +135,19 @@ class SettingsController extends Controller
         ];
 
         $url = self::YOOCHOOSE_LICENSE_URL . $customerId . '/plugin/update?createIfNeeded=true&fallbackDesign=true';
+        $result = [
+            'status' => true,
+            'message' => 'Configuration successfully saved',
+        ];
 
-        $response = $this->helper->getHttpPage($url, $body, $customerId, $licenseKey);
-
-        if ($response['statusCode'] == 200 || $response['statusCode'] == 409) {
-            $result = [
-                'status' => true,
-                'message' => 'Configuration successfully saved',
-            ];
-        } else {
+        try {
+            $this->helper->getHttpPage($url, $body, $customerId, $licenseKey);
+        } catch (IntegrationRegistrationException $e) {
             $result = [
                 'status' => false,
-                'message' =>  'Configuration saved but could not connect to Yoochoose. Error '
-                    . $response['statusCode'] . ' ' . $response['faultMessage'],
+                'message' =>  $e->getMessage(),
             ];
         }
-
-        $this->getLogger('SettingsController_saveSettings')->info('Yoochoose::log.configurationSaved', []);
 
         return $this->response->json($result);
     }

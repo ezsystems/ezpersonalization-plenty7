@@ -6,6 +6,7 @@ use Plenty\Modules\Helper\Services\WebstoreHelper;
 use Plenty\Modules\Template\Design\Config\Contracts\DesignRepositoryContract;
 use Plenty\Plugin\Application;
 use Plenty\Plugin\Log\Loggable;
+use Yoochoose\Exceptions\IntegrationRegistrationException;
 
 class Data
 {
@@ -75,10 +76,37 @@ class Data
 
         $response = curl_exec($curl);
         $result = json_decode($response, true);
+        $headers = curl_getinfo($curl, CURLINFO_HEADER_OUT);
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        $this->getLogger('Data_getHttpPage')->info('Yoochoose::log.configurationSaved', []);
-        
+        $this->getLogger('Data_getHttpPage')->info('Yoochoose::log.configurationSaved', [
+            'requestUrl' => $url,
+            'requestBody' => $body,
+            'status' => $status,
+            'headers' => $headers,
+            'response' => $response,
+        ]);
+
+        $eno = curl_errno($curl);
+
+        if ($eno && $eno != 22) {
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            throw IntegrationRegistrationException::because("I/O error requesting [$url]. Code: $eno. $error");
+        }
+
         curl_close($curl);
+        switch ($status) {
+            case 200:
+                break;
+            case 409:
+                if ($result['faultCode'] === 'pluginAlreadyExistsFault') {
+                    break;
+                }
+            default:
+                throw IntegrationRegistrationException::because("{$result['faultMessage']} With status code: $status");
+        }
         
         return $result;
     }

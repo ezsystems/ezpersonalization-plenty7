@@ -17,12 +17,16 @@ class HeadContainer
     const YOOCHOOSE_CDN_SCRIPT = '//event.yoochoose.net/cdn';
     const AMAZON_CDN_SCRIPT = '//cdn.yoochoose.net';
 
+    /**
+     * HeadContainer constructor.
+     */
     public function __construct()
-    {
-    }
+    {}
 
     /**
      * @param Twig $twig
+     * @param Data $dataHelper
+     * @param WebstoreConfigurationService $webStoreConfig
      * @param TemplateService $templateService
      * @param SettingsService $settingsService
      * @param SessionStorageService $sessionStorage
@@ -32,6 +36,8 @@ class HeadContainer
      */
     public function call(
         Twig $twig,
+        Data $dataHelper,
+        WebstoreConfigurationService $webStoreConfig,
         templateService $templateService,
         SettingsService $settingsService,
         SessionStorageService $sessionStorage,
@@ -39,20 +45,14 @@ class HeadContainer
         CustomerService $customerService
     ): string
     {
-        $mandator = $settingsService->getSettingsValue('customer_id');
         $customerId = $customerService->getContactId();
-        $plugin = $settingsService->getSettingsValue('plugin_id');
-        $ycOverwriteEndpoint = $settingsService->getSettingsValue('script_id');
         $ycEnableSearch = $settingsService->getSettingsValue('search_enable');
         $itemType = $settingsService->getSettingsValue('item_type');
+        $mandator = $settingsService->getSettingsValue('customer_id');
+        $plugin = $settingsService->getSettingsValue('plugin_id');
+        $ycOverwriteEndpoint = $settingsService->getSettingsValue('script_id');
 
-        /** @var Data $dataHelper */
-        $dataHelper = pluginApp(Data::class);
-
-        /** @var WebstoreConfigurationService $webstoreConfig */
-        $webstoreConfig = pluginApp(WebstoreConfigurationService::class);
-        $storeConf = $webstoreConfig->getWebstoreConfig()->toArray();
-
+        $storeConf = $webStoreConfig->getWebstoreConfig()->toArray();
         $currentTemplate = $templateService->getCurrentTemplate();
 
         switch ($currentTemplate) {
@@ -67,6 +67,9 @@ class HeadContainer
                 break;
             case 'tpl.home':
                 $currentPage = 'home';
+                break;
+            case 'tpl.confirmation':
+                $currentPage = 'buyout';
                 break;
             default:
                 $currentPage = '';
@@ -112,4 +115,5 @@ class HeadContainer
 
         return $twig->render('Yoochoose::content.head', $template);
     }
+
 }

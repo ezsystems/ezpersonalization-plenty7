@@ -73,7 +73,7 @@ class HeadContainer
                 break;
         }
 
-        $order = '';
+        $orderDetails = [];
         if ($currentTemplate === 'tpl.confirmation') {
             $orderId = $sessionStorage->getSessionValue(SessionStorageKeys::LATEST_ORDER_ID);
             $order = $orderRepositoryContract->findOrderById($orderId)->toArray();
@@ -101,7 +101,7 @@ class HeadContainer
         $template = [
             'shopUrl' => $storeConf['domainSsl'] . '/',
             'webStoreId' => $dataHelper->getStoreId(),
-            'orderData' => json_encode($order),
+            'orderData' => json_encode($orderDetails),
             'currentPage' => $currentPage,
             'ycCustomerId' => (int)$customerId,
             'ycEnableSearch' => $ycEnableSearch,

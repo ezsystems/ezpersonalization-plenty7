@@ -83,12 +83,16 @@ class HeadContainer
             $orderId = $sessionStorage->getSessionValue(YoochooseServiceProvider::YC_LAST_ORDER_ID);
             if ($orderId) {
                 $order = $orderRepositoryContract->findOrderById($orderId)->toArray();
-                foreach ($order['orderItems'] as $orderItems) {
+                foreach ($order['orderItems'] as $orderItem) {
+                    $amount = $orderItem['amounts'][0] ?? null;
+                    $price = $amount ? $amount['priceGross'] : 0;
+                    $currency = $amount ? $amount['currency'] : '';
+
                     $orderDetails[] = [
-                        'itemId' => $orderItems['id'],
-                        'quantity' => $orderItems['quantity'],
-                        'price' => $orderItems['id'],
-                        'currency' => $orderItems['id'],
+                        'id' => $orderItem['id'],
+                        'qty' => $orderItem['quantity'],
+                        'price' => $price,
+                        'currency' => $currency,
                     ];
                 }
             }

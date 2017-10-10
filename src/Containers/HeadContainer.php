@@ -7,9 +7,11 @@ use IO\Services\CustomerService;
 use IO\Services\SessionStorageService;
 use IO\Services\TemplateService;
 use IO\Services\WebstoreConfigurationService;
+use Plenty\Modules\Frontend\Session\Storage\Contracts\FrontendSessionStorageFactoryContract;
 use Plenty\Modules\Order\Contracts\OrderRepositoryContract;
 use Plenty\Plugin\Templates\Twig;
 use Yoochoose\Helpers\Data;
+use Yoochoose\Providers\YoochooseServiceProvider;
 use Yoochoose\Services\SettingsService;
 
 class HeadContainer
@@ -78,15 +80,17 @@ class HeadContainer
 
         $orderDetails = [];
         if ($currentTemplate === 'tpl.confirmation') {
-            $orderId = $sessionStorage->getSessionValue(SessionStorageKeys::LATEST_ORDER_ID);
-            $order = $orderRepositoryContract->findOrderById($orderId)->toArray();
-            foreach ($order['orderItems'] as $orderItems) {
-                $orderDetails[] = [
-                    'itemId' => $orderItems['id'],
-                    'quantity' => $orderItems['quantity'],
-                    'price' => $orderItems['id'],
-                    'currency' => $orderItems['id'],
-                ];
+            $orderId = $sessionStorage->getSessionValue(YoochooseServiceProvider::YC_LAST_ORDER_ID);
+            if ($orderId) {
+                $order = $orderRepositoryContract->findOrderById($orderId)->toArray();
+                foreach ($order['orderItems'] as $orderItems) {
+                    $orderDetails[] = [
+                        'itemId' => $orderItems['id'],
+                        'quantity' => $orderItems['quantity'],
+                        'price' => $orderItems['id'],
+                        'currency' => $orderItems['id'],
+                    ];
+                }
             }
         }
 

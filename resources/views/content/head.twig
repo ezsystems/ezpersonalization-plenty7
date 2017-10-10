@@ -4,7 +4,7 @@
     var yc_config_object = {
         "url":"{{ shopUrl }}",
         "trackid":{{ ycCustomerId }},
-        "orderData": {{ orderData }},
+        "orderData": {{ orderData | raw}},
         "itemType":"{{ itemType }}",
         "language": "{{ lang }}",
         "currentPage": "{{ currentPage }}",

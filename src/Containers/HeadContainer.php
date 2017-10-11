@@ -103,7 +103,6 @@ class HeadContainer
                         'qty' => $orderItem['quantity'],
                         'price' => $price,
                         'currency' => $currency,
-                        'variation' => $variation->toArray(),
                     ];
                 }
             }

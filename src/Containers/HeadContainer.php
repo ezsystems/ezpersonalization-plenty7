@@ -2,12 +2,11 @@
 
 namespace Yoochoose\Containers;
 
-use IO\Constants\SessionStorageKeys;
 use IO\Services\CustomerService;
 use IO\Services\SessionStorageService;
 use IO\Services\TemplateService;
 use IO\Services\WebstoreConfigurationService;
-use Plenty\Modules\Frontend\Session\Storage\Contracts\FrontendSessionStorageFactoryContract;
+use Plenty\Modules\Item\Variation\Contracts\VariationRepositoryContract;
 use Plenty\Modules\Order\Contracts\OrderRepositoryContract;
 use Plenty\Plugin\Templates\Twig;
 use Yoochoose\Helpers\Data;
@@ -34,6 +33,7 @@ class HeadContainer
      * @param SessionStorageService $sessionStorage
      * @param OrderRepositoryContract $orderRepositoryContract
      * @param CustomerService $customerService
+     * @param VariationRepositoryContract $variationRepository
      * @return string
      */
     public function call(
@@ -44,7 +44,8 @@ class HeadContainer
         SettingsService $settingsService,
         SessionStorageService $sessionStorage,
         OrderRepositoryContract $orderRepositoryContract,
-        CustomerService $customerService
+        CustomerService $customerService,
+        VariationRepositoryContract $variationRepository
     ): string
     {
         $customerId = $customerService->getContactId();
@@ -84,15 +85,25 @@ class HeadContainer
             if ($orderId) {
                 $order = $orderRepositoryContract->findOrderById($orderId)->toArray();
                 foreach ($order['orderItems'] as $orderItem) {
+                    if ($orderItem['id'] == 0) {
+                        continue;
+                    }
+
                     $amount = $orderItem['amounts'][0] ?? null;
                     $price = $amount ? $amount['priceGross'] : 0;
                     $currency = $amount ? $amount['currency'] : '';
 
+                    $variation = $variationRepository->findById($orderItem['itemVariationId']);
+                    if (!$variation) {
+                        continue;
+                    }
+
                     $orderDetails[] = [
-                        'id' => $orderItem['id'],
+                        'id' => $variation->itemId,
                         'qty' => $orderItem['quantity'],
                         'price' => $price,
                         'currency' => $currency,
+                        'variation' => $variation->toArray(),
                     ];
                 }
             }

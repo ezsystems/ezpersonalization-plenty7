@@ -202,7 +202,6 @@ class ExportModel
             $categoryPath = $this->buildCategoryPath($parentId, $lang) . '/' . $categoryPath;
         }
 
-        $categoryPath = htmlspecialchars_decode($categoryPath);
         $this->loadedCategories[$categoryId] = $categoryPath;
 
         return $categoryPath;

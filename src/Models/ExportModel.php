@@ -22,12 +22,23 @@ class ExportModel
     private $app;
 
     /**
+     * @var array
+     */
+    private $loadedCategories = [];
+    /**
+     * @var CategoryRepositoryContract
+     */
+    private $categoryRepository;
+
+    /**
      * ExportModel constructor.
      * @param Application $app
+     * @param CategoryRepositoryContract $categoryRepository
      */
-    public function __construct(Application $app)
+    public function __construct(Application $app, CategoryRepositoryContract $categoryRepository)
     {
         $this->app = $app;
+        $this->categoryRepository = $categoryRepository;
     }
 
     /**
@@ -91,9 +102,6 @@ class ExportModel
         /** @var URLFilter $urlFilter */
         $urlFilter = pluginApp(URLFilter::class);
 
-        /** @var CategoryRepositoryContract $categoryRepository */
-        $categoryRepository = pluginApp(CategoryRepositoryContract::class);
-
         /** @var DocumentProcessor $documentProcessor */
         $documentProcessor = pluginApp(DocumentProcessor::class);
 
@@ -146,15 +154,8 @@ class ExportModel
                 $temp['tags'] = explode(',', $product['data']['texts'][0]['keywords']);
             }
 
-            $categoryIds = explode(',', $product['data']['categories']['paths'][0]);
-            $categories = [];
-            foreach ($categoryIds as $categoryId) {
-                $category = $categoryRepository->get((int)$categoryId, $lang);
-                if ($category) {
-                    $categories[] = $category->toArray();
-                }
-            }
-            $temp['categories'] = $this->extractCategoriesPaths($categories);
+            $categoryIds = array_column($product['data']['defaultCategories'] ?? [], 'id');
+            $temp['categories'] = $this->extractCategoriesPaths($categoryIds, $lang);
 
             $result[] = $temp;
         }
@@ -165,26 +166,46 @@ class ExportModel
     /**
      * Returns names of categories separated by slash
      *
-     * @param array $categories
+     * @param array $categoryIds
+     * @param $lang
      * @return array
      */
-    private function extractCategoriesPaths($categories)
+    private function extractCategoriesPaths($categoryIds, $lang)
     {
-        $result = [];
-
-        foreach ($categories as $category) {
-            $parentId = $category['parentCategoryId'];
-            if (isset($parentId)) {
-                if (array_key_exists($parentId, $result)) {
-                    $result[$category['id']] = $result[$parentId] . '/' . $category['details'][0]['name'];
-                }
-
-            } else {
-                $result[$category['id']] = $category['details'][0]['name'];
+        $categories = [];
+        foreach ($categoryIds as $catId) {
+            if (!array_key_exists($catId, $this->loadedCategories)) {
+                $this->buildCategoryPath($catId, $lang);
             }
+
+            $categories[] = $this->loadedCategories[$catId];
         }
 
-        return array_values($result);
+        return $categories;
+    }
+
+    /**
+     * @param $categoryId
+     * @param $lang
+     * @return string
+     */
+    private function buildCategoryPath($categoryId, $lang)
+    {
+        if (array_key_exists($categoryId, $this->loadedCategories)) {
+            return $this->loadedCategories[$categoryId];
+        }
+
+        $category = $this->categoryRepository->get($categoryId, $lang)->toArray();
+        $categoryPath = $category['details'][0]['name'];
+        $parentId = $category['parentCategoryId'];
+        if ($parentId) {
+            $categoryPath = $this->buildCategoryPath($parentId, $lang) . '/' . $categoryPath;
+        }
+
+        $categoryPath = htmlspecialchars_decode($categoryPath);
+        $this->loadedCategories[$categoryId] = $categoryPath;
+
+        return $categoryPath;
     }
 
     /**

@@ -131,10 +131,12 @@ class ExportController extends Controller
                 return $this->response->json(["Limit, mandator and webHook parameters must be set."], 400);
             }
 
-            $header = $this->request->header('Authorization');
-            $appSecret = str_replace('Bearer ', '', $header);
+            $appSecret = [];
+            $appSecret[] = str_replace('Bearer ', '', $this->request->header('Authorization', ''));
+            $appSecret[] = str_replace('Bearer ', '', $this->request->header('YCAuth', ''));
+            $appSecret[] = urldecode($this->request->get('ycauth', ''));
 
-            if (md5($licenceKey) == $appSecret) {
+            if (in_array(md5($licenceKey), $appSecret, true)) {
                 $this->limit = $this->request->get('limit');
                 $this->offset = $this->request->get('offset');
                 $this->language = $this->request->get('lang');

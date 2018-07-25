@@ -27,5 +27,6 @@
       "javaScriptFiles": [],
       "runOnBuild": [
             "Yoochoose\\Migrations\\CreateSettingsTable"
-      ]
+      ],
+      "require": ["IO", "Ceres"]
 }

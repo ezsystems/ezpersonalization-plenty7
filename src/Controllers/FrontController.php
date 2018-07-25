@@ -105,7 +105,7 @@ class FrontController extends Controller
                         $imageUrl = str_replace($productId . ':', $productId . '/3000x3000/', $imageUrl);
                     }
 
-                    $variationUrl = $this->urlFilter->buildVariationURL((int)$product->variationBase->id, true);
+                    $variationUrl = $this->urlFilter->buildVariationURL((int)$product->variationBase->id);
 
                     $products[] = [
                         'id' => $productId,

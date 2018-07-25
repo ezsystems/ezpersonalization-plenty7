@@ -140,7 +140,7 @@ class ExportModel
                 'description' => isset($texts['description']) ? $texts['description'] : null,
                 'price' => $this->getProductPrice($product['data']['salesPrices']),
                 'url' => $storeConf['domainSsl'] .
-                    $urlFilter->buildVariationURL((int)$product['data']['variation']['id'], true),
+                    $urlFilter->buildVariationURL((int)$product['data']['variation']['id']),
                 'image' => isset($product['data']['images']['all'][0]['url']) ?
                     $product['data']['images']['all'][0]['url'] : null,
                 'manufacturer' => isset($product['data']['item']['manufacturer']['name']) ?

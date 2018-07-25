@@ -155,7 +155,8 @@ class SettingsController extends Controller
     /**
      * Load settings for configuration page
      *
-     * @return bool|mixed
+     * @return \Symfony\Component\HttpFoundation\Response;
+     * @throws \Exception
      */
     public function loadSettings()
     {

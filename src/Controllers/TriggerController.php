@@ -93,8 +93,12 @@ class TriggerController extends Controller
             } catch (\Throwable $e) {
                 $response['success'] = false;
                 $response['message'] = $e->getMessage();
-                $this->getLogger('TriggerController_export')->info(
-                    'YoochoosePersonalizationEngine::log.triggerExportFailed', $response);
+                $this->getLogger('TriggerController_export')->error(
+                    'YoochoosePersonalizationEngine::log.triggerExportFailed', [
+                        'message' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                        'trace_formatted' => $e->getTrace()
+                ]);
             } finally {
                 $this->settingsService->setSettingsValue('enable_flag', 0);
             }

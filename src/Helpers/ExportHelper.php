@@ -149,7 +149,7 @@ class ExportHelper
      */
     private function exportData($method, $postData, $limit, $exportIndex, $shopId, $mandatorId, $lang)
     {
-        $this->getLogger('ExportHelper_export')
+        $this->getLogger('ExportHelper_exportData')
             ->info('YoochoosePersonalizationEngine::log.exportStartedForResource',
                 ['shopId' => $shopId, 'method' => $method]);
 

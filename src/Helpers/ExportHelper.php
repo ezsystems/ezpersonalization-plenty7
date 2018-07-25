@@ -102,8 +102,10 @@ class ExportHelper
         $i = 0;
 
         foreach ($postData['events'] as $event) {
+            $this->getLogger('ExportHelper_export')->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['format' => $event['format']]);
             $method = $formatsMap[$event['format']] ? $formatsMap[$event['format']] : null;
             if ($method) {
+                $this->getLogger('ExportHelper_export')->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['method' => $method]);
                 $postData = self::exportData($method, $postData, $limit, $i, $event['shopViewId'],
                     $mandatorId, $event['lang']);
             }

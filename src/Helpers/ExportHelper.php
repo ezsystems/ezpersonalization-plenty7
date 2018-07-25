@@ -71,10 +71,14 @@ class ExportHelper
 
         $languages = empty($lang) ? $this->webstoreConfigurationService->getActiveLanguageList() : [$lang];
 
+        $this->getLogger('ExportHelper_export')->info('Yoochoose::log.exportStartedAllResources', []);
         /** @var Data $dataHelper */
         $dataHelper = pluginApp(Data::class);
 
+        $this->getLogger('ExportHelper_export')->info('Yoochoose::log.exportStartedAllResources', []);
+
         foreach ($formatsMap as $format => $method) {
+
             foreach ($languages as $language) {
                 $postData['events'][] = [
                     'action' => 'FULL',
@@ -91,6 +95,8 @@ class ExportHelper
                 $shopIds[$method][] = $dataHelper->getStoreId();
             }
         }
+
+        $this->getLogger('ExportHelper_export')->info('Yoochoose::log.exportStartedAllResources', []);
 
         $i = 0;
 

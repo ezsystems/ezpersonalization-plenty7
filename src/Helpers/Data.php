@@ -79,7 +79,7 @@ class Data
         $headers = curl_getinfo($curl, CURLINFO_HEADER_OUT);
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        $this->getLogger('Data_getHttpPage')->info('YoochoosePersonalizationEngine::log.registrationCall', [
+        $this->getLogger('Data_getHttpPage')->info('Yoochoose::log.registrationCall', [
             'requestUrl' => $url,
             'requestBody' => $body,
             'status' => $status,

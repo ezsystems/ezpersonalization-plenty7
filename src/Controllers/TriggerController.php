@@ -74,7 +74,7 @@ class TriggerController extends Controller
      */
     public function export()
     {
-        $this->getLogger('TriggerController_export')->info('YoochoosePersonalizationEngine::log.triggerExportStarted', []);
+        $this->getLogger('TriggerController_export')->info('Yoochoose::log.triggerExportStarted', []);
         $limit = $this->request->get('limit');
         $callbackUrl = $this->request->get('webHook');
         $postPassword = $this->request->get('password');
@@ -94,7 +94,7 @@ class TriggerController extends Controller
                 $response['success'] = false;
                 $response['message'] = $e->getMessage();
                 $this->getLogger('TriggerController_export')->info(
-                    'YoochoosePersonalizationEngine::log.triggerExportFailed' . $e->getMessage(),
+                    'Yoochoose::log.triggerExportFailed' . $e->getMessage(),
                     []
                 );
             } finally {
@@ -135,7 +135,7 @@ class TriggerController extends Controller
         $response = curl_exec($cURL);
 
         $this->getLogger('TriggerController_setCallback')->info(
-            'YoochoosePersonalizationEngine::log.callbackSent' . $url,
+            'Yoochoose::log.callbackSent' . $url,
             ['post' => $postString]
         );
 

@@ -171,7 +171,7 @@ class ExportController extends Controller
         if ($flag != 1) {
             $requestUri = $_SERVER['REQUEST_URI'];
             $queryString = substr($requestUri, strpos($requestUri, '?') + 1);
-            $this->getLogger('ExportController_start')->info('YoochoosePersonalizationEngine::log.exportStarted' . $queryString, []);
+            $this->getLogger('ExportController_start')->info('Yoochoose::log.exportStarted' . $queryString, []);
 
             $post['mandator'] = $this->mandator;
             $post['limit'] = $this->limit;

@@ -102,12 +102,13 @@ class ExportHelper
         $i = 0;
 
         foreach ($postData['events'] as $event) {
-            $this->getLogger('ExportHelper_export')->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['format' => $event['format']]);
+            $this->getLogger('ExportHelper_export')
+                ->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['format' => $event['format']]);
             $method = $formatsMap[$event['format']] ? $formatsMap[$event['format']] : null;
             if ($method) {
-                $this->getLogger('ExportHelper_export')->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['method' => $method]);
-                $postData = self::exportData($method, $postData, $limit, $i, $event['shopViewId'],
-                    $mandatorId, $event['lang']);
+                $this->getLogger('ExportHelper_export')
+                    ->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['method' => $method]);
+                $postData = $this->exportData($method, $postData, $limit, $i, $event['shopViewId'], $mandatorId, $event['lang']);
             }
             $i++;
         }
@@ -148,10 +149,9 @@ class ExportHelper
      */
     private function exportData($method, $postData, $limit, $exportIndex, $shopId, $mandatorId, $lang)
     {
-        $this->getLogger('ExportHelper_exportData')->info(
-            'YoochoosePersonalizationEngine::log.exportStartedForResource' . $method,
-            ['shopId' => $shopId]
-        );
+        $this->getLogger('ExportHelper_export')
+            ->info('YoochoosePersonalizationEngine::log.exportStartedForResource',
+                ['shopId' => $shopId, 'method' => $method]);
 
         /** @var ExportModel $model */
         $model = pluginApp(ExportModel::class);
@@ -160,8 +160,8 @@ class ExportHelper
 
         do {
             $this->getLogger('ExportHelper_exportData')->info(
-                'YoochoosePersonalizationEngine::log.exportBulkStarted' . $method,
-                ['shopId' => $shopId, 'limit' => $limit, 'offset' => $offset]
+                'YoochoosePersonalizationEngine::log.exportBulkStarted',
+                ['shopId' => $shopId, 'limit' => $limit, 'offset' => $offset, 'method' => $method]
             );
             switch ($method) {
                 case 'Products':
@@ -188,16 +188,16 @@ class ExportHelper
                 //remove query parameters since signed URL doesn't load
                 $postData['events'][$exportIndex]['uri'][] = preg_replace('/\\?.*/', '', $signedUrl);
                 $this->getLogger('ExportHelper_exportData')->info(
-                    'YoochoosePersonalizationEngine::log.exportBulkFinished' . $method,
-                    ['shopId' => $shopId, 'limit' => $limit, 'offset' => $offset, 'file' => $file]
+                    'YoochoosePersonalizationEngine::log.exportBulkFinished',
+                    ['shopId' => $shopId, 'limit' => $limit, 'offset' => $offset, 'file' => $file, 'method' => $method]
                 );
                 $offset = $offset + $limit;
             }
         } while (!empty($results));
 
         $this->getLogger('ExportHelper_exportData')->info(
-            'YoochoosePersonalizationEngine::log.exportFinishedForResource' . $method,
-            ['shopId' => $shopId]
+            'YoochoosePersonalizationEngine::log.exportFinishedForResource',
+            ['shopId' => $shopId, 'method' => $method]
         );
 
         return $postData;

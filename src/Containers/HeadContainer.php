@@ -131,7 +131,7 @@ class HeadContainer
             'itemType' => $itemType,
         ];
 
-        return $twig->render('Yoochoose::content.head', $template);
+        return $twig->render('YoochoosePersonalizationEngine::content.head', $template);
     }
 
 }

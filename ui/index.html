@@ -220,7 +220,7 @@
      function loadSettings() {
         var http = new XMLHttpRequest();
         var url = "/yoochoose/settings/";
-        http.open("GET", url, true);
+        http.open("POST", url, true);
 
         http.onreadystatechange = function () {
             if (http.readyState == 4 && http.status == 200) {

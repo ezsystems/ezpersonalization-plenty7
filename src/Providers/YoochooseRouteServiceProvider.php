@@ -18,6 +18,6 @@ class YoochooseRouteServiceProvider extends RouteServiceProvider
 
         //settings
         $router->post('yoochoose/settings/', 'Yoochoose\Controllers\SettingsController@saveSettings');
-        $router->get('yoochoose/settings/', 'Yoochoose\Controllers\SettingsController@loadSettings');
+        $router->post('yoochoose/settings/', 'Yoochoose\Controllers\SettingsController@loadSettings');
     }
 }

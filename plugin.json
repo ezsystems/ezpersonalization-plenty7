@@ -15,5 +15,17 @@
       "categories" : ["3600", "3517"],
       "keywords" : ["plugins", "template", "services", "personalization", "recommendation", "search", "revenue", "marketing"],
       "email" : "support@yoochoose.com",
-      "phone" : "+49 221 3674860"
+      "phone" : "+49 221 3674860",
+      "serviceProvider":"Yoochoose\\Providers\\YoochooseServiceProvider",
+      "dataProviders": [
+            {
+                  "key":"Yoochoose\\Containers\\HeadContainer",
+                  "name":"Yoochoose Tracking",
+                  "description": "Yoochoose Tracking"
+            }
+      ],
+      "javaScriptFiles": [],
+      "runOnBuild": [
+            "Yoochoose\\Migrations\\CreateSettingsTable"
+      ]
 }

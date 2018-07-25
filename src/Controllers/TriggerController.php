@@ -90,13 +90,11 @@ class TriggerController extends Controller
                 $postData = $this->helper->export($lang, $transaction, $limit, $customerId);
                 $this->setCallback($callbackUrl, $postData, $customerId, $licenceKey);
                 $response['success'] = true;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $response['success'] = false;
                 $response['message'] = $e->getMessage();
                 $this->getLogger('TriggerController_export')->info(
-                    'YoochoosePersonalizationEngine::log.triggerExportFailed' . $e->getMessage(),
-                    []
-                );
+                    'YoochoosePersonalizationEngine::log.triggerExportFailed', $response);
             } finally {
                 $this->settingsService->setSettingsValue('enable_flag', 0);
             }

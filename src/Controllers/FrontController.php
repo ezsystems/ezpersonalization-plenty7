@@ -1,20 +1,23 @@
 <?php
+
 namespace Yoochoose\Controllers;
 
-use Plenty\Modules\Item\DataLayer\Models\Record;
-use Plenty\Plugin\Application;
-use Plenty\Plugin\Controller;
-use Plenty\Plugin\Http\Response;
-use Plenty\Plugin\Http\Request;
-use Plenty\Modules\Item\DataLayer\Contracts\ItemDataLayerRepositoryContract;
-use IO\Services\ItemService;
 use IO\Builder\Item\ItemColumnBuilder;
 use IO\Builder\Item\ItemFilterBuilder;
 use IO\Builder\Item\ItemParamsBuilder;
 use IO\Builder\Item\Params\ItemColumnsParams;
-use IO\Services\WebstoreConfigurationService;
 use IO\Extensions\Filters\URLFilter;
+use IO\Services\ItemService;
 use IO\Services\SessionStorageService;
+use IO\Services\WebstoreConfigurationService;
+use Plenty\Modules\Item\DataLayer\Contracts\ItemDataLayerRepositoryContract;
+use Plenty\Modules\Item\DataLayer\Models\Record;
+use Plenty\Modules\Item\ItemImage\Contracts\ItemImageRepositoryContract;
+use Plenty\Modules\Item\ItemImage\Models\ItemImage;
+use Plenty\Plugin\Application;
+use Plenty\Plugin\Controller;
+use Plenty\Plugin\Http\Request;
+use Plenty\Plugin\Http\Response;
 
 class FrontController extends Controller
 {
@@ -53,6 +56,11 @@ class FrontController extends Controller
      */
     private $urlFilter;
 
+    /**
+     * @var ItemImageRepositoryContract
+     */
+    private $imageRepository;
+
     public function __construct(
         Application $app,
         Response $response,
@@ -60,8 +68,9 @@ class FrontController extends Controller
         ItemService $service,
         ItemDataLayerRepositoryContract $itemRepository,
         SessionStorageService $sessionStorage,
-        URLFilter $urlFilter)
-    {
+        URLFilter $urlFilter,
+        ItemImageRepositoryContract $imageRepository
+    ) {
         $this->app = $app;
         $this->response = $response;
         $this->request = $request;
@@ -69,6 +78,7 @@ class FrontController extends Controller
         $this->itemRepository = $itemRepository;
         $this->sessionStorage = $sessionStorage;
         $this->urlFilter = $urlFilter;
+        $this->imageRepository = $imageRepository;
     }
 
     /**
@@ -86,7 +96,6 @@ class FrontController extends Controller
 
         if (!empty($productIds)) {
             foreach ($productIds as $productId) {
-
                 try {
                     /** @var Record $product */
                     $product = $this->getItem([$productId])->current();
@@ -97,6 +106,8 @@ class FrontController extends Controller
 
                 if ($product) {
                     $variationUrl = $this->urlFilter->buildVariationURL((int)$product->variationBase->id);
+                    /** @var ItemImage $image */
+                    $image = $this->imageRepository->findByItemId($productId);
 
                     $products[] = [
                         'id' => $productId,
@@ -106,11 +117,13 @@ class FrontController extends Controller
                             $product->variationRetailPrice->price : null,
                         'oldPrice' => isset($product->variationRecommendedRetailPrice->price) ?
                             $product->variationRecommendedRetailPrice->price : null,
-                        'image' => $this->itemService->getItemImage($productId),
+                        'image' => $image->url,
                         'title' => $product->itemDescription->name1,
                         'debug' => [
                             'item' => $product->toArray(),
                             'class' => get_class($product),
+                            'image_item' => $image->toArray(),
+                            'image_class' => get_class($image),
                         ],
                     ];
                 }
@@ -122,6 +135,7 @@ class FrontController extends Controller
 
     /**
      * @param $itemIds
+     *
      * @return \Plenty\Modules\Item\DataLayer\Models\RecordList
      */
     private function getItem($itemIds)

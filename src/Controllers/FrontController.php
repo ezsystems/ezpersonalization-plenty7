@@ -135,12 +135,12 @@ class FrontController extends Controller
                             $product->variationRetailPrice->price : null,
                         'oldPrice' => isset($product->variationRecommendedRetailPrice->price) ?
                             $product->variationRecommendedRetailPrice->price : null,
-                        'image' => $image ? $image->url : '',
+                        'image' => '',
                         'title' => $product->itemDescription->name1,
                         'debug' => [
                             'item' => $product->toArray(),
                             'class' => get_class($product),
-                            'image_item' => $image? $image->toArray() : null,
+                            'image_item' => json_encode($image),
                         ],
                     ];
                 }

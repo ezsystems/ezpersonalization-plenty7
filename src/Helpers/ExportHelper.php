@@ -178,9 +178,9 @@ class ExportHelper
             if (!empty($results)) {
                 $filename = $this->generateRandomString() . '.json';
                 $file = self::YC_DIRECTORY_NAME . '/' . $filename;
-                $this->storageRepo->uploadObject('Yoochoose', $file, json_encode($results), true);
+                $this->storageRepo->uploadObject('YoochoosePersonalizationEngine', $file, json_encode($results), true);
                 $signedUrl = $this->storageRepo->getObjectUrl(
-                    'Yoochoose',
+                    'YoochoosePersonalizationEngine',
                     $file,
                     true,
                     15

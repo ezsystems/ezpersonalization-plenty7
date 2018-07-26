@@ -107,7 +107,10 @@ class FrontController extends Controller
                 if ($product) {
                     $variationUrl = $this->urlFilter->buildVariationURL((int)$product->variationBase->id);
                     /** @var ItemImage $image */
-                    $image = $this->imageRepository->findByVariationId((int)$product->variationBase->id);
+                    $image = null;
+                    if ($product->variationImageList[0]->imageId) {
+                        $image = $this->imageRepository->show($product->variationImageList[0]->imageId);
+                    }
 
                     $products[] = [
                         'id' => $productId,
@@ -117,12 +120,12 @@ class FrontController extends Controller
                             $product->variationRetailPrice->price : null,
                         'oldPrice' => isset($product->variationRecommendedRetailPrice->price) ?
                             $product->variationRecommendedRetailPrice->price : null,
-                        'image' => '',
+                        'image' => $image ? $image->url : '',
                         'title' => $product->itemDescription->name1,
                         'debug' => [
                             'item' => $product->toArray(),
                             'class' => get_class($product),
-                            'image_item' => $image,
+                            'image_item' => $image->toArray(),
                         ],
                     ];
                 }

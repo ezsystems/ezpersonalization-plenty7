@@ -10,6 +10,7 @@ use IO\Extensions\Filters\URLFilter;
 use IO\Services\ItemService;
 use IO\Services\SessionStorageService;
 use IO\Services\WebstoreConfigurationService;
+use Plenty\Modules\Authorization\Services\AuthHelper;
 use Plenty\Modules\Item\DataLayer\Contracts\ItemDataLayerRepositoryContract;
 use Plenty\Modules\Item\DataLayer\Models\Record;
 use Plenty\Modules\Item\ItemImage\Contracts\ItemImageRepositoryContract;
@@ -61,6 +62,11 @@ class FrontController extends Controller
      */
     private $imageRepository;
 
+    /**
+     * @var AuthHelper
+     */
+    private $authHelper;
+
     public function __construct(
         Application $app,
         Response $response,
@@ -69,7 +75,8 @@ class FrontController extends Controller
         ItemDataLayerRepositoryContract $itemRepository,
         SessionStorageService $sessionStorage,
         URLFilter $urlFilter,
-        ItemImageRepositoryContract $imageRepository
+        ItemImageRepositoryContract $imageRepository,
+        AuthHelper $authHelper
     ) {
         $this->app = $app;
         $this->response = $response;
@@ -79,6 +86,7 @@ class FrontController extends Controller
         $this->sessionStorage = $sessionStorage;
         $this->urlFilter = $urlFilter;
         $this->imageRepository = $imageRepository;
+        $this->authHelper = $authHelper;
     }
 
     /**
@@ -93,6 +101,7 @@ class FrontController extends Controller
         /** @var WebstoreConfigurationService $webstoreConfig */
         $webstoreConfig = pluginApp(WebstoreConfigurationService::class);
         $storeConf = $webstoreConfig->getWebstoreConfig()->toArray();
+        $itemImageRepo = $this->imageRepository;
 
         if (!empty($productIds)) {
             foreach ($productIds as $productId) {
@@ -109,8 +118,14 @@ class FrontController extends Controller
                     /** @var ItemImage $image */
                     $image = null;
                     if ($product->variationImageList[0]->imageId) {
-                        $image = $this->imageRepository->show($product->variationImageList[0]->imageId);
+                        $imageId = $product->variationImageList[0]->imageId;
+                        $image =  $this->authHelper->processUnguarded(
+                            function () use ($itemImageRepo, $imageId) {
+                                return $itemImageRepo->show($imageId);
+                            }
+                        );
                     }
+
 
                     $products[] = [
                         'id' => $productId,
@@ -125,7 +140,7 @@ class FrontController extends Controller
                         'debug' => [
                             'item' => $product->toArray(),
                             'class' => get_class($product),
-                            'image_item' => $image->toArray(),
+                            'image_item' => $image? $image->toArray() : null,
                         ],
                     ];
                 }

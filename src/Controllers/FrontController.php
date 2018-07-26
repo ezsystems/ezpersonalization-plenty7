@@ -1,6 +1,7 @@
 <?php
 namespace Yoochoose\Controllers;
 
+use Plenty\Modules\Item\DataLayer\Models\Record;
 use Plenty\Plugin\Application;
 use Plenty\Plugin\Controller;
 use Plenty\Plugin\Http\Response;
@@ -87,6 +88,7 @@ class FrontController extends Controller
             foreach ($productIds as $productId) {
 
                 try {
+                    /** @var Record $product */
                     $product = $this->getItem([$productId])->current();
                 } catch (\Exception $e) {
                     // SQL error is thrown if there's not product with ID
@@ -94,17 +96,6 @@ class FrontController extends Controller
                 }
 
                 if ($product) {
-                    if (!empty($product->variationImageList[0])) {
-                        $imageUrl = $product->variationImageList[0]->path;
-                    } else {
-                        $imageUrl = str_replace(
-                            'S3:',
-                            'item/images/',
-                            $this->itemService->getVariationImage((int)$product->variationBase->id)
-                        );
-                        $imageUrl = str_replace($productId . ':', $productId . '/3000x3000/', $imageUrl);
-                    }
-
                     $variationUrl = $this->urlFilter->buildVariationURL((int)$product->variationBase->id);
 
                     $products[] = [
@@ -115,8 +106,12 @@ class FrontController extends Controller
                             $product->variationRetailPrice->price : null,
                         'oldPrice' => isset($product->variationRecommendedRetailPrice->price) ?
                             $product->variationRecommendedRetailPrice->price : null,
-                        'image' => $storeConf['domainSsl'] . '/' . $imageUrl,
+                        'image' => $this->itemService->getItemImage($productId),
                         'title' => $product->itemDescription->name1,
+                        'debug' => [
+                            'item' => $product->toArray(),
+                            'class' => get_class($product),
+                        ],
                     ];
                 }
             }

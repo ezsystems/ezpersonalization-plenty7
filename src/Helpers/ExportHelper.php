@@ -56,7 +56,8 @@ class ExportHelper
      */
     public function export($lang, $transaction, $limit, $mandatorId)
     {
-        $this->getLogger('ExportHelper_export')->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['time' => 1]);
+        $this->getLogger('ExportHelper_export')
+            ->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', []);
         $shopIds = [];
         $formatsMap = [
             'PLENTY7' => 'Products',
@@ -69,14 +70,10 @@ class ExportHelper
             'events' => [],
         ];
 
-        $this->getLogger('ExportHelper_export')->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['time' => 2]);
         $languages = empty($lang) ? $this->webstoreConfigurationService->getActiveLanguageList() : [$lang];
 
-        $this->getLogger('ExportHelper_export')->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['time' => 3]);
         /** @var Data $dataHelper */
         $dataHelper = pluginApp(Data::class);
-
-        $this->getLogger('ExportHelper_export')->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['time' => 4]);
 
         foreach ($formatsMap as $format => $method) {
 
@@ -96,8 +93,6 @@ class ExportHelper
                 $shopIds[$method][] = $dataHelper->getStoreId();
             }
         }
-
-        $this->getLogger('ExportHelper_export')->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['time' => 5]);
 
         $i = 0;
 

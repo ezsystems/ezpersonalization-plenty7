@@ -48,11 +48,13 @@ class ExportHelper
     /**
      * export to files
      *
-     * @param int $limit
      * @param string $lang
      * @param int $transaction
+     * @param int $limit
      * @param int $mandatorId
+     *
      * @return array postData
+     * @throws \Exception
      */
     public function export($lang, $transaction, $limit, $mandatorId)
     {
@@ -103,7 +105,7 @@ class ExportHelper
             if ($method) {
                 $this->getLogger('ExportHelper_export')
                     ->info('YoochoosePersonalizationEngine::log.exportStartedAllResources', ['method' => $method]);
-                $postData = $this->exportData($method, $postData, $limit, $i, $event['shopViewId'], $mandatorId, $event['lang']);
+                $postData = $this->exportData($method, $postData, $limit, $i, $event['shopViewId'], $event['lang']);
             }
             $i++;
         }
@@ -138,11 +140,10 @@ class ExportHelper
      * @param int $limit
      * @param int $exportIndex
      * @param integer $shopId
-     * @param string $mandatorId
      * @param string $lang
      * @return array $postData
      */
-    private function exportData($method, $postData, $limit, $exportIndex, $shopId, $mandatorId, $lang)
+    private function exportData($method, $postData, $limit, $exportIndex, $shopId, $lang)
     {
         $this->getLogger('ExportHelper_exportData')
             ->info('YoochoosePersonalizationEngine::log.exportStartedForResource',

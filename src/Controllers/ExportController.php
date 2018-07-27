@@ -157,6 +157,7 @@ class ExportController extends Controller
     /**
      * Returning item details
      *
+     * @throws \Exception
      */
     private function startExport()
     {
@@ -204,7 +205,6 @@ class ExportController extends Controller
      */
     private function triggerExport($url)
     {
-
         $cURL = curl_init();
         curl_setopt($cURL, CURLOPT_URL, $url);
         curl_setopt($cURL, CURLOPT_FOLLOWLOCATION, true);

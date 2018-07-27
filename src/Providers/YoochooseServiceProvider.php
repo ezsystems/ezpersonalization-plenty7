@@ -24,6 +24,7 @@ class YoochooseServiceProvider extends ServiceProvider
         $this->getApplication()->register(YoochooseRouteServiceProvider::class);
 
         // Hook onto Order Created event and save order id into plugin session storage
+        /** @var Dispatcher $dispatcher */
         $dispatcher = pluginApp(Dispatcher::class);
         $dispatcher->listen(OrderCreated::class,
             function (OrderCreated $event) use ($dispatcher) {

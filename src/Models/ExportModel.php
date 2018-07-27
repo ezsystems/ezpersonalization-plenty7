@@ -2,17 +2,16 @@
 
 namespace Yoochoose\Models;
 
-use Plenty\Plugin\Application;
+use IO\Extensions\Filters\URLFilter;
+use IO\Services\WebstoreConfigurationService;
+use Plenty\Modules\Category\Contracts\CategoryRepositoryContract;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Processor\DocumentProcessor;
 use Plenty\Modules\Cloud\ElasticSearch\Lib\Search\Document\DocumentSearch;
+use Plenty\Modules\Item\Manufacturer\Contracts\ManufacturerRepositoryContract;
 use Plenty\Modules\Item\Search\Contracts\VariationElasticSearchSearchRepositoryContract;
 use Plenty\Modules\Item\Search\Filter\ClientFilter;
 use Plenty\Modules\Item\Search\Filter\VariationBaseFilter;
-use Plenty\Modules\Category\Contracts\CategoryRepositoryContract;
-use Plenty\Modules\Item\Manufacturer\Contracts\ManufacturerRepositoryContract;
-
-use IO\Services\WebstoreConfigurationService;
-use IO\Extensions\Filters\URLFilter;
+use Plenty\Plugin\Application;
 
 class ExportModel
 {
@@ -32,6 +31,7 @@ class ExportModel
 
     /**
      * ExportModel constructor.
+     *
      * @param Application $app
      * @param CategoryRepositoryContract $categoryRepository
      */
@@ -48,11 +48,11 @@ class ExportModel
      * @param integer $offset
      * @param integer $limit
      * @param string $lang
+     *
      * @return array
      */
     public function getCategories($shopId, $offset, $limit, $lang)
     {
-
         $result = [];
         $page = $offset == 0 ? 1 : (int)$offset / (int)$limit + 1;
 
@@ -88,6 +88,7 @@ class ExportModel
      * @param int $offset
      * @param int $limit
      * @param string $lang
+     *
      * @return array
      */
     public function getProducts($shopId, $offset, $limit, $lang)
@@ -131,16 +132,24 @@ class ExportModel
         $products = $elasticSearchRepo->execute();
 
         foreach ($products['documents'] as $product) {
-
             $texts = $this->getProductTexts($product['data']['texts'], $lang);
+            $variationUrl = $urlFilter->buildItemURL(
+                [
+                    'item' => [
+                        'id' => $product['data']['variation']['itemId']
+                    ],
+                    'variation' => [
+                        'id' => (int)$product['data']['variation']['id'],
+                    ],
+                ]
+            );
 
             $temp = [
                 'id' => $product['data']['variation']['itemId'],
                 'name' => isset($texts['name1']) ? $texts['name1'] : null,
                 'description' => isset($texts['description']) ? $texts['description'] : null,
                 'price' => $this->getProductPrice($product['data']['salesPrices']),
-                'url' => $storeConf['domainSsl'] .
-                    $urlFilter->buildVariationURL((int)$product['data']['variation']['id']),
+                'url' => $storeConf['domainSsl'] . $variationUrl,
                 'image' => isset($product['data']['images']['all'][0]['url']) ?
                     $product['data']['images']['all'][0]['url'] : null,
                 'manufacturer' => isset($product['data']['item']['manufacturer']['name']) ?
@@ -164,54 +173,11 @@ class ExportModel
     }
 
     /**
-     * Returns names of categories separated by slash
-     *
-     * @param array $categoryIds
-     * @param $lang
-     * @return array
-     */
-    private function extractCategoriesPaths($categoryIds, $lang)
-    {
-        $categories = [];
-        foreach ($categoryIds as $catId) {
-            if (!array_key_exists($catId, $this->loadedCategories)) {
-                $this->buildCategoryPath($catId, $lang);
-            }
-
-            $categories[] = $this->loadedCategories[$catId];
-        }
-
-        return $categories;
-    }
-
-    /**
-     * @param $categoryId
-     * @param $lang
-     * @return string
-     */
-    private function buildCategoryPath($categoryId, $lang)
-    {
-        if (array_key_exists($categoryId, $this->loadedCategories)) {
-            return $this->loadedCategories[$categoryId];
-        }
-
-        $category = $this->categoryRepository->get($categoryId, $lang)->toArray();
-        $categoryPath = $category['details'][0]['name'];
-        $parentId = $category['parentCategoryId'];
-        if ($parentId) {
-            $categoryPath = $this->buildCategoryPath($parentId, $lang) . '/' . $categoryPath;
-        }
-
-        $this->loadedCategories[$categoryId] = $categoryPath;
-
-        return $categoryPath;
-    }
-
-    /**
      * Returns list of manufacturers that are visible on frontend
      *
      * @param integer $offset
      * @param integer $limit
+     *
      * @return array
      */
     public function getVendors($offset, $limit)
@@ -234,10 +200,57 @@ class ExportModel
         return $result;
     }
 
-    /** 
+    /**
+     * Returns names of categories separated by slash
+     *
+     * @param array $categoryIds
+     * @param $lang
+     *
+     * @return array
+     */
+    private function extractCategoriesPaths($categoryIds, $lang)
+    {
+        $categories = [];
+        foreach ($categoryIds as $catId) {
+            if (!array_key_exists($catId, $this->loadedCategories)) {
+                $this->buildCategoryPath($catId, $lang);
+            }
+
+            $categories[] = $this->loadedCategories[$catId];
+        }
+
+        return $categories;
+    }
+
+    /**
+     * @param $categoryId
+     * @param $lang
+     *
+     * @return string
+     */
+    private function buildCategoryPath($categoryId, $lang)
+    {
+        if (array_key_exists($categoryId, $this->loadedCategories)) {
+            return $this->loadedCategories[$categoryId];
+        }
+
+        $category = $this->categoryRepository->get($categoryId, $lang)->toArray();
+        $categoryPath = $category['details'][0]['name'];
+        $parentId = $category['parentCategoryId'];
+        if ($parentId) {
+            $categoryPath = $this->buildCategoryPath($parentId, $lang) . '/' . $categoryPath;
+        }
+
+        $this->loadedCategories[$categoryId] = $categoryPath;
+
+        return $categoryPath;
+    }
+
+    /**
      * Returns default product price
-     * 
+     *
      * @param array $prices
+     *
      * @return null|string
      */
     private function getProductPrice($prices)
@@ -259,28 +272,34 @@ class ExportModel
      *
      * @param array $details
      * @param string $lang
+     *
      * @return string
      */
-    private function getCategoryNameFromDetails($details, $lang) {
+    private function getCategoryNameFromDetails($details, $lang)
+    {
         foreach ($details as $detail) {
             if ($detail['lang'] === $lang) {
                 return $detail['name'];
             }
         }
+
         return '';
     }
 
     /**
      * @param array $texts
      * @param string $lang
+     *
      * @return array
      */
-    private function getProductTexts($texts, $lang) {
+    private function getProductTexts($texts, $lang)
+    {
         foreach ($texts as $text) {
             if ($text['lang'] === $lang) {
                 return $text;
             }
         }
+
         return array();
     }
 }

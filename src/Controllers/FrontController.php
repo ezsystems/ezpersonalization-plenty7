@@ -114,23 +114,23 @@ class FrontController extends Controller
                 }
 
                 if ($product) {
-                    $variationUrl = $this->urlFilter->buildVariationURL((int)$product->variationBase->id);
+                    $variationUrl = $this->urlFilter->buildItemURL(
+                        ['item' => ['id' => $productId], 'variation' => ['id' => $product->variationBase->id]]
+                    );
                     /** @var ItemImage $image */
                     $image = null;
                     if ($product->variationImageList[0]->imageId) {
                         $imageId = $product->variationImageList[0]->imageId;
-                        $image =  $this->authHelper->processUnguarded(
+                        $image = $this->authHelper->processUnguarded(
                             function () use ($itemImageRepo, $imageId) {
                                 return $itemImageRepo->show($imageId);
                             }
                         );
                     }
 
-
                     $products[] = [
                         'id' => $productId,
-                        'link' => $storeConf['domainSsl'] . '/' . $product->itemDescription->urlContent . '_' .
-                            ltrim($variationUrl, '/'),
+                        'link' => $storeConf['domainSsl'] . $variationUrl,
                         'newPrice' => isset($product->variationRetailPrice->price) ?
                             $product->variationRetailPrice->price : null,
                         'oldPrice' => isset($product->variationRecommendedRetailPrice->price) ?
